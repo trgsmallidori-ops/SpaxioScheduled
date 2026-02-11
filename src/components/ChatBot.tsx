@@ -132,8 +132,14 @@ export function ChatBot() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-lg transition hover:bg-[var(--accent-hover)] hover:scale-105 active:scale-95"
-        style={{ width: FAB_SIZE, height: FAB_SIZE }}
+        className={`flex shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-lg transition hover:bg-[var(--accent-hover)] hover:scale-105 hover:[animation-play-state:paused] active:scale-95 ring-4 ring-[var(--accent)]/30 ${
+          !open ? "animate-chat-fab-bounce" : ""
+        }`}
+        style={{
+          width: FAB_SIZE,
+          height: FAB_SIZE,
+          boxShadow: "0 4px 20px rgba(66, 85, 255, 0.4), 0 8px 24px rgba(0,0,0,0.15)",
+        }}
         aria-label={open ? "Minimize chat" : "Open chat"}
       >
         {open ? (
