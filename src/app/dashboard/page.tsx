@@ -9,6 +9,7 @@ import { UploadSyllabus } from "@/components/UploadSyllabus";
 import { QuotaCard } from "@/components/QuotaCard";
 import { AddClassTime } from "@/components/AddClassTime";
 import { ChatBot } from "@/components/ChatBot";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import { FREE_UPLOADS } from "@/lib/stripe";
 import type { CalendarEvent as CalEvent } from "@/types/database";
 import type { UserQuota } from "@/types/database";
@@ -25,6 +26,8 @@ export default function DashboardPage() {
   const [isCreatorOrAdmin, setIsCreatorOrAdmin] = useState(false);
   const [success, setSuccess] = useState(false);
   const [canceled, setCanceled] = useState(false);
+  const [deleteConfirmCourseId, setDeleteConfirmCourseId] = useState<string | null>(null);
+  const [deleteCourseLoading, setDeleteCourseLoading] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -114,7 +117,6 @@ export default function DashboardPage() {
   }
 
   async function handleDeleteCourse(courseId: string) {
-    if (!confirm(t.deleteCourseConfirm)) return;
     const supabase = createClient();
     await supabase.from("courses").delete().eq("id", courseId);
     setCourseFilterId("all");
@@ -165,7 +167,7 @@ export default function DashboardPage() {
               {courseFilterId !== "all" && (
                 <button
                   type="button"
-                  onClick={() => handleDeleteCourse(courseFilterId)}
+                  onClick={() => setDeleteConfirmCourseId(courseFilterId)}
                   className="rounded-xl bg-red-500 px-3 py-2 text-sm font-bold text-white hover:bg-red-600"
                 >
                   {t.deleteCourse}
@@ -233,6 +235,27 @@ export default function DashboardPage() {
         </section>
         <ChatBot />
       </aside>
+
+      <ConfirmModal
+        open={deleteConfirmCourseId !== null}
+        title={t.deleteCourse}
+        message={t.deleteCourseConfirm}
+        confirmLabel={t.deleteCourse}
+        cancelLabel={t.cancel}
+        variant="danger"
+        loading={deleteCourseLoading}
+        onConfirm={async () => {
+          if (!deleteConfirmCourseId) return;
+          setDeleteCourseLoading(true);
+          try {
+            await handleDeleteCourse(deleteConfirmCourseId);
+            setDeleteConfirmCourseId(null);
+          } finally {
+            setDeleteCourseLoading(false);
+          }
+        }}
+        onCancel={() => !deleteCourseLoading && setDeleteConfirmCourseId(null)}
+      />
     </div>
   );
 }

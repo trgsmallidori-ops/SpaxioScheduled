@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useRouter } from "next/navigation";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import type { Profile } from "@/types/database";
 
 export default function AccountPage() {
@@ -13,6 +14,7 @@ export default function AccountPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [email, setEmail] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [resetError, setResetError] = useState("");
   const [resetting, setResetting] = useState(false);
@@ -78,10 +80,10 @@ export default function AccountPage() {
   }
 
   async function deleteAccount() {
-    if (!confirm(t.deleteAccountConfirm)) return;
     setDeleting(true);
     const res = await fetch("/api/account/delete", { method: "POST" });
     setDeleting(false);
+    setShowDeleteAccountConfirm(false);
     if (res.ok) {
       router.push("/");
       router.refresh();
@@ -170,13 +172,25 @@ export default function AccountPage() {
         </p>
         <button
           type="button"
-          onClick={deleteAccount}
+          onClick={() => setShowDeleteAccountConfirm(true)}
           disabled={deleting}
           className="mt-4 rounded-xl bg-red-600 px-6 py-3 text-base font-bold text-white hover:bg-red-700 disabled:opacity-50"
         >
-          {deleting ? "..." : t.deleteAccount}
+          {t.deleteAccount}
         </button>
       </section>
+
+      <ConfirmModal
+        open={showDeleteAccountConfirm}
+        title={t.deleteAccount}
+        message={t.deleteAccountConfirm}
+        confirmLabel={t.deleteAccount}
+        cancelLabel={t.cancel}
+        variant="danger"
+        loading={deleting}
+        onConfirm={deleteAccount}
+        onCancel={() => !deleting && setShowDeleteAccountConfirm(false)}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/contexts/LocaleContext";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import type { Course } from "@/types/database";
 import type { CalendarEvent } from "@/types/database";
 import { formatDisplayDate } from "@/lib/formatDate";
@@ -13,6 +14,8 @@ export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedId, setSelectedId] = useState<string | "all">("all");
+  const [deleteConfirmCourseId, setDeleteConfirmCourseId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   function refetch() {
     const supabase = createClient();
@@ -38,7 +41,6 @@ export default function CoursesPage() {
   }, []);
 
   async function handleDeleteCourse(courseId: string) {
-    if (!confirm(t.deleteCourseConfirm)) return;
     const supabase = createClient();
     await supabase.from("courses").delete().eq("id", courseId);
     if (selectedId === courseId) setSelectedId("all");
@@ -161,7 +163,7 @@ export default function CoursesPage() {
                     </h2>
                     <button
                       type="button"
-                      onClick={() => handleDeleteCourse(course.id)}
+                      onClick={() => setDeleteConfirmCourseId(course.id)}
                       className="rounded-xl bg-red-500 px-3 py-2 text-sm font-bold text-white hover:bg-red-600"
                     >
                       {t.deleteCourse}
@@ -246,6 +248,27 @@ export default function CoursesPage() {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        open={deleteConfirmCourseId !== null}
+        title={t.deleteCourse}
+        message={t.deleteCourseConfirm}
+        confirmLabel={t.deleteCourse}
+        cancelLabel={t.cancel}
+        variant="danger"
+        loading={deleteLoading}
+        onConfirm={async () => {
+          if (!deleteConfirmCourseId) return;
+          setDeleteLoading(true);
+          try {
+            await handleDeleteCourse(deleteConfirmCourseId);
+            setDeleteConfirmCourseId(null);
+          } finally {
+            setDeleteLoading(false);
+          }
+        }}
+        onCancel={() => !deleteLoading && setDeleteConfirmCourseId(null)}
+      />
     </div>
   );
 }

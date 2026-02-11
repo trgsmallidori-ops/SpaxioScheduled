@@ -21,6 +21,7 @@ import {
   getMonth,
 } from "date-fns";
 import { useLocale } from "@/contexts/LocaleContext";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import type { CalendarEvent } from "@/types/database";
 import { formatDisplayDate } from "@/lib/formatDate";
 
@@ -50,6 +51,7 @@ export function CalendarView({
   const [viewMode, setViewMode] = useState<CalendarViewMode>("month");
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const getEventsForDay = (day: Date) => {
     const key = format(day, "yyyy-MM-dd");
@@ -81,14 +83,17 @@ export function CalendarView({
           ? format(current, "MMMM yyyy")
           : format(current, "yyyy");
 
-  async function handleDeleteClick() {
+  function openDeleteConfirm() {
+    if (selectedEvent && onDeleteEvent) setShowDeleteConfirm(true);
+  }
+
+  async function confirmDeleteEvent() {
     if (!selectedEvent || !onDeleteEvent) return;
-    const message = t.deleteEventConfirm ?? "Are you sure you want to delete this event? This cannot be undone.";
-    if (!confirm(message)) return;
     setDeleting(true);
     try {
       await onDeleteEvent(selectedEvent.id);
       setSelectedEvent(null);
+      setShowDeleteConfirm(false);
     } finally {
       setDeleting(false);
     }
@@ -382,7 +387,7 @@ export function CalendarView({
               {onDeleteEvent && (
                 <button
                   type="button"
-                  onClick={handleDeleteClick}
+                  onClick={openDeleteConfirm}
                   disabled={deleting}
                   className="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50"
                 >
@@ -393,6 +398,18 @@ export function CalendarView({
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={showDeleteConfirm && selectedEvent !== null}
+        title={t.delete}
+        message={t.deleteEventConfirm ?? "Are you sure you want to delete this event? This cannot be undone."}
+        confirmLabel={t.delete}
+        cancelLabel={t.cancel}
+        variant="danger"
+        loading={deleting}
+        onConfirm={confirmDeleteEvent}
+        onCancel={() => !deleting && setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }
