@@ -109,6 +109,7 @@ async function handleParseSyllabus(request: NextRequest) {
   const paidAvailable = paidPurchased - paidUsed;
   const freeAccess = isCreatorOrAdmin(user.id);
 
+  // Server-side quota check — never skip. Blocks direct API calls or URL bypass.
   if (!freeAccess) {
     if (freeUsed >= FREE_UPLOADS && paidAvailable <= 0) {
       return NextResponse.json(
@@ -265,6 +266,25 @@ async function handleParseSyllabus(request: NextRequest) {
     }
     return null;
   };
+
+  // Re-check quota right before creating course (defense in depth: no bypass via direct API/URL).
+  if (!freeAccess) {
+    const { data: quotaRecheck } = await admin
+      .from("user_quota")
+      .select("free_uploads_used, paid_uploads_purchased, paid_uploads_used")
+      .eq("user_id", user.id)
+      .single();
+    const fr = (quotaRecheck?.free_uploads_used ?? 0) as number;
+    const pp = (quotaRecheck?.paid_uploads_purchased ?? 0) as number;
+    const pu = (quotaRecheck?.paid_uploads_used ?? 0) as number;
+    const paidAvail = pp - pu;
+    if (fr >= FREE_UPLOADS && paidAvail <= 0) {
+      return NextResponse.json(
+        { error: "No uploads left", code: "QUOTA_EXCEEDED" },
+        { status: 403 }
+      );
+    }
+  }
 
   const { data: course, error: courseErr } = await admin
     .from("courses")

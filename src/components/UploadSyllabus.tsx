@@ -188,20 +188,20 @@ export function UploadSyllabus({
             {blocks.map((block, i) => (
               <div
                 key={i}
-                className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--border-subtle)] bg-white/80 p-3"
+                className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface)]/80 p-3"
               >
                 <input
                   type="time"
                   value={block.start}
                   onChange={(e) => updateBlock(i, { start: e.target.value })}
-                  className="rounded-xl border border-[var(--border-subtle)] bg-white px-3 py-2 text-sm"
+                  className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-2 text-sm"
                 />
                 <span className="text-[var(--muted)]">–</span>
                 <input
                   type="time"
                   value={block.end}
                   onChange={(e) => updateBlock(i, { end: e.target.value })}
-                  className="rounded-xl border border-[var(--border-subtle)] bg-white px-3 py-2 text-sm"
+                  className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-2 text-sm"
                 />
                 <div className="flex gap-1">
                   {DAYS.map((day) => (
@@ -210,7 +210,7 @@ export function UploadSyllabus({
                       type="button"
                       onClick={() => toggleDay(i, day)}
                       className={`rounded-lg px-2.5 py-1 text-sm font-bold ${
-                        block.days.includes(day) ? "bg-[var(--accent)] text-white" : "bg-white text-[var(--muted)]"
+                        block.days.includes(day) ? "bg-[var(--accent)] text-white" : "bg-[var(--surface)] text-[var(--muted)]"
                       }`}
                     >
                       {day.slice(0, 1)}
@@ -232,7 +232,7 @@ export function UploadSyllabus({
               <button
                 type="button"
                 onClick={addBlock}
-                className="rounded-xl border border-dashed border-[var(--accent)] bg-white px-4 py-2 text-sm font-bold text-[var(--accent)] hover:bg-[var(--accent-light)]"
+                className="rounded-xl border border-dashed border-[var(--accent)] bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--accent)] hover:bg-[var(--accent-light)]"
               >
                 + {t.addAnotherTime}
               </button>

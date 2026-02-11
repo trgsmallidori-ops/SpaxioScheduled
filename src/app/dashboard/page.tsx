@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/contexts/LocaleContext";
 import { CalendarView } from "@/components/CalendarView";
+import { ReminderSettings } from "@/components/ReminderSettings";
 import { UploadSyllabus } from "@/components/UploadSyllabus";
 import { QuotaCard } from "@/components/QuotaCard";
 import { AddClassTime } from "@/components/AddClassTime";
@@ -20,6 +21,7 @@ export default function DashboardPage() {
   const [courseFilterId, setCourseFilterId] = useState<string>("all");
   const [quota, setQuota] = useState<UserQuota | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState("");
   const [isCreatorOrAdmin, setIsCreatorOrAdmin] = useState(false);
   const [success, setSuccess] = useState(false);
   const [canceled, setCanceled] = useState(false);
@@ -33,7 +35,10 @@ export default function DashboardPage() {
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setUserId(user.id);
+      if (user) {
+        setUserId(user.id);
+        setUserEmail(user.email ?? "");
+      }
     });
   }, []);
 
@@ -135,7 +140,7 @@ export default function DashboardPage() {
             <p className="mt-1 text-sm font-medium text-[var(--muted)]">{t.outOfUploadsMessage}</p>
           </div>
         )}
-        <section className="rounded-2xl bg-white shadow-soft">
+        <section className="rounded-2xl bg-[var(--surface)] shadow-soft">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--divider)] px-6 py-4">
             <h2 className="text-xl font-bold text-[var(--text)]">
               {t.calendar}
@@ -146,7 +151,7 @@ export default function DashboardPage() {
                 <select
                   value={courseFilterId}
                   onChange={(e) => setCourseFilterId(e.target.value)}
-                  className="rounded-xl border border-[var(--divider)] bg-white px-3 py-2 text-sm font-medium text-[var(--text)] shadow-soft"
+                  className="rounded-xl border border-[var(--divider)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--text)] shadow-soft"
                 >
                   <option value="all">{t.allCourses}</option>
                   {courses.map((c) => (
@@ -168,25 +173,49 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
+          <div className="border-b border-[var(--divider)] px-6 py-4">
+            {userId && (
+              <ReminderSettings
+                userId={userId}
+                userEmail={userEmail}
+              />
+            )}
+          </div>
           <CalendarView events={filteredEvents} courseNames={courseNames} onUpdate={refetchEvents} onDeleteEvent={handleDeleteEvent} />
         </section>
       </div>
       <aside className="order-1 flex w-full flex-col gap-6 shrink-0 lg:order-2 lg:w-[340px]">
-        <section className="rounded-2xl bg-white p-6 shadow-soft">
+        <section className="rounded-2xl bg-[var(--surface)] p-6 shadow-soft">
           <h2 className="text-xl font-bold text-[var(--text)]">
             {t.uploadSyllabus}
           </h2>
           <p className="mt-2 text-[var(--muted)]">
             {t.uploadSyllabusDesc}
           </p>
-          <UploadSyllabus onSuccess={refetchEvents} />
-          <AddClassTime onSave={refetchEvents} />
-          {!isCreatorOrAdmin && (
-            <QuotaCard
-              quota={quota}
-              isCreatorOrAdmin={false}
-              onPurchaseComplete={refetchEvents}
-            />
+          {!isCreatorOrAdmin && quota && (quota.paid_uploads_purchased ?? 0) - (quota.paid_uploads_used ?? 0) + Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0)) <= 0 ? (
+            <>
+              <div className="mt-4 rounded-xl border-2 border-[var(--accent)] bg-[var(--accent-light)]/30 px-4 py-4">
+                <p className="font-semibold text-[var(--text)]">{t.outOfUploads}</p>
+                <p className="mt-1 text-sm text-[var(--muted)]">{t.outOfUploadsMessage}</p>
+              </div>
+              <QuotaCard
+                quota={quota}
+                isCreatorOrAdmin={false}
+                onPurchaseComplete={refetchEvents}
+              />
+            </>
+          ) : (
+            <>
+              <UploadSyllabus onSuccess={refetchEvents} />
+              <AddClassTime onSave={refetchEvents} />
+              {!isCreatorOrAdmin && (
+                <QuotaCard
+                  quota={quota}
+                  isCreatorOrAdmin={false}
+                  onPurchaseComplete={refetchEvents}
+                />
+              )}
+            </>
           )}
           {isCreatorOrAdmin && (
             <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl bg-[var(--green-light)] px-5 py-3 shadow-soft">

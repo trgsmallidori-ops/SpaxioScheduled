@@ -1,5 +1,8 @@
 export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://spaxioscheduled.com";
 
+/** Full URL for OG/Twitter image (crawlers need absolute URLs). */
+export const ogImageUrl = `${SITE_URL}/logo.png`;
+
 export const defaultMeta = {
   title: "SpaxioScheduled — AI School Calendar & Course Outline Calendar",
   description:
@@ -31,12 +34,15 @@ export function buildJsonLd() {
         description: defaultMeta.description,
         url: SITE_URL,
         applicationCategory: "EducationalApplication",
+        operatingSystem: "Any",
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
         featureList: [
           "AI syllabus parsing",
           "Course outline to calendar",
           "School calendar with assignments and exams",
           "Class schedule and reminders",
+          "PDF and Word syllabus upload",
+          "Exam and assignment reminders",
         ],
       },
       {
@@ -56,6 +62,47 @@ export function buildJsonLd() {
           "query-input": "required name=term",
         },
       },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+          { "@type": "ListItem", position: 2, name: "Log in", item: `${SITE_URL}/login` },
+          { "@type": "ListItem", position: 3, name: "Sign up", item: `${SITE_URL}/signup` },
+          { "@type": "ListItem", position: 4, name: "Privacy", item: `${SITE_URL}/privacy` },
+          { "@type": "ListItem", position: 5, name: "Terms", item: `${SITE_URL}/terms` },
+          { "@type": "ListItem", position: 6, name: "Cookies", item: `${SITE_URL}/cookies` },
+          { "@type": "ListItem", position: 7, name: "Contact / Refunds", item: `${SITE_URL}/contact` },
+        ],
+      },
     ],
+  };
+}
+
+/** Build page-level metadata for consistent titles and Open Graph. */
+export function pageMeta({
+  title,
+  description,
+  path = "",
+  noIndex = false,
+}: {
+  title: string;
+  description: string;
+  path?: string;
+  noIndex?: boolean;
+}) {
+  const url = path ? `${SITE_URL}${path}` : SITE_URL;
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: "SpaxioScheduled",
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: "SpaxioScheduled" }],
+    },
+    twitter: { card: "summary_large_image" as const, title, description },
+    alternates: { canonical: url },
+    robots: noIndex ? { index: false, follow: true } : undefined,
   };
 }

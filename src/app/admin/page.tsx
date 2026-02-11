@@ -46,7 +46,7 @@ export default function AdminPage() {
   return (
     <div className="mx-auto w-full max-w-2xl bg-[var(--bg)] px-6 py-10">
       <h1 className="text-2xl font-bold text-[var(--text)]">{t.adminTitle}</h1>
-      <div className="mt-8 rounded-2xl bg-white p-6 shadow-soft">
+      <div className="mt-8 rounded-2xl bg-[var(--surface)] p-6 shadow-soft">
         <p className="text-base font-semibold text-[var(--text)]">
           {t.adminFreeUploadsOnly}
         </p>

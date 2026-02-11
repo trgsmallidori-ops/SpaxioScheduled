@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 
 // Royalty-free images from Unsplash (university classrooms + calendars)
@@ -15,14 +15,19 @@ const HERO_IMAGE_SOURCES = [
 
 const ROTATE_INTERVAL_MS = 4000;
 
-function shuffleArray<T>(array: T[]): T[] {
+/** Deterministic reorder so server and client render the same (avoids hydration mismatch). */
+function deterministicOrder<T>(array: T[], seed: number): T[] {
   const out = [...array];
+  let s = seed;
   for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    s = (s * 1103515245 + 12345) & 0x7fffffff;
+    const j = s % (i + 1);
     [out[i], out[j]] = [out[j], out[i]];
   }
   return out;
 }
+
+const HERO_IMAGES_ORDERED = deterministicOrder(HERO_IMAGE_SOURCES, 42);
 
 function PlaceholderSlide() {
   return (
@@ -40,7 +45,7 @@ function PlaceholderSlide() {
 }
 
 export function HeroImageCarousel() {
-  const images = useMemo(() => shuffleArray(HERO_IMAGE_SOURCES), []);
+  const images = HERO_IMAGES_ORDERED;
   const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState<Record<number, boolean>>({});
 

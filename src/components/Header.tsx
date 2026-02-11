@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 
 export function Header() {
   const { t, locale, setLocale } = useLocale();
+  const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -59,27 +60,29 @@ export function Header() {
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[var(--divider)] bg-white shadow-soft">
+    <header className="sticky top-0 z-50 w-full border-b border-[var(--divider)] bg-[var(--surface)] shadow-soft">
       <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between gap-4 px-6">
         <Link
           href="/"
-          className="flex items-center gap-0 no-underline transition opacity-95 hover:opacity-100"
+          className="text-xl font-bold text-[var(--text)] no-underline transition opacity-95 hover:opacity-100"
           aria-label={t.siteName}
         >
-          <Image
-            src="/logo.png"
-            alt=""
-            width={180}
-            height={48}
-            className="h-10 w-auto object-contain"
-            priority
-          />
+          SpaxioScheduled
         </Link>
         <nav className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="rounded-xl p-2.5 text-[var(--text)] hover:bg-[var(--border-subtle)] transition"
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Light mode" : "Dark mode"}
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
           <select
             value={locale}
             onChange={(e) => setLocale(e.target.value as "en" | "fr")}
-            className="rounded-xl border border-[var(--border-subtle)] bg-white px-3 py-2 text-sm text-[var(--text)]"
+            className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)]"
           >
             <option value="en">{t.english}</option>
             <option value="fr">{t.french}</option>

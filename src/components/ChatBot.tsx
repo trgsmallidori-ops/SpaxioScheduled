@@ -42,7 +42,7 @@ export function ChatBot() {
   }
 
   return (
-    <div className="rounded-2xl bg-white shadow-soft">
+    <div className="rounded-2xl bg-[var(--surface)] shadow-soft">
       <h2 className="border-b border-[var(--divider)] px-5 py-4 text-lg font-bold text-[var(--text)]">
         💬 {t.askAssistant}
       </h2>
@@ -77,7 +77,7 @@ export function ChatBot() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={t.placeholder}
-              className="flex-1 rounded-xl border border-[var(--border-subtle)] bg-white px-4 py-3 text-[var(--text)]"
+              className="flex-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-4 py-3 text-[var(--text)]"
             />
             <button
               type="submit"

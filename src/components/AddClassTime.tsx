@@ -105,7 +105,7 @@ export function AddClassTime({ onSave }: { onSave: () => void }) {
       </p>
       <ul className="mt-4 space-y-4">
         {needClassTime.map((c) => (
-          <li key={c.id} className="rounded-lg border border-[var(--border-subtle)] bg-white/80 p-4">
+          <li key={c.id} className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface)]/80 p-4">
             <span className="font-semibold text-[var(--text)]">{c.name}</span>
             {editingId === c.id ? (
               <div className="mt-3 space-y-3">
@@ -115,14 +115,14 @@ export function AddClassTime({ onSave }: { onSave: () => void }) {
                       type="time"
                       value={block.start.slice(0, 5)}
                       onChange={(e) => updateBlock(i, { start: e.target.value })}
-                      className="rounded-xl border border-[var(--border-subtle)] bg-white px-3 py-2 text-sm"
+                      className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-2 text-sm"
                     />
                     <span className="text-[var(--muted)]">–</span>
                     <input
                       type="time"
                       value={block.end.slice(0, 5)}
                       onChange={(e) => updateBlock(i, { end: e.target.value })}
-                      className="rounded-xl border border-[var(--border-subtle)] bg-white px-3 py-2 text-sm"
+                      className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-2 text-sm"
                     />
                     <div className="flex gap-1">
                       {DAYS.map((day) => (
@@ -131,7 +131,7 @@ export function AddClassTime({ onSave }: { onSave: () => void }) {
                           type="button"
                           onClick={() => toggleDay(i, day)}
                           className={`rounded-lg px-2.5 py-1 text-sm font-bold ${
-                            block.days.includes(day) ? "bg-[var(--accent)] text-white" : "bg-white text-[var(--muted)]"
+                            block.days.includes(day) ? "bg-[var(--accent)] text-white" : "bg-[var(--surface)] text-[var(--muted)]"
                           }`}
                         >
                           {day.slice(0, 1)}
@@ -153,7 +153,7 @@ export function AddClassTime({ onSave }: { onSave: () => void }) {
                   <button
                     type="button"
                     onClick={addBlock}
-                    className="rounded-xl border border-dashed border-[var(--accent)] bg-white px-3 py-2 text-sm font-bold text-[var(--accent)]"
+                    className="rounded-xl border border-dashed border-[var(--accent)] bg-[var(--surface)] px-3 py-2 text-sm font-bold text-[var(--accent)]"
                   >
                     + {t.addAnotherTime}
                   </button>

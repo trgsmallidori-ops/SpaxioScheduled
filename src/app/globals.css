@@ -25,6 +25,27 @@
   --radius-xl: 24px;
 }
 
+/* Dark mode: navy blue background, white text */
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-elevated: #334155;
+  --border: #334155;
+  --border-subtle: #1e293b;
+  --divider: #334155;
+  --text: #ffffff;
+  --text-secondary: #e2e8f0;
+  --muted: #94a3b8;
+  --muted-strong: #cbd5e1;
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-light: #1e3a5f;
+  --green: #34d399;
+  --green-light: #064e3b;
+  --orange: #fbbf24;
+  --orange-light: #422006;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -34,7 +55,10 @@ html {
   margin: 0;
   padding: 0;
   background: var(--bg);
-  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 body {

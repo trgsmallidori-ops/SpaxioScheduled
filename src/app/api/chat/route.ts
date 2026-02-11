@@ -91,14 +91,26 @@ ${eventsText || "No upcoming events."}
     );
   }
 
-  const completion = await openai.chat.completions.create({
-    model: OPENAI_MODEL,
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT + "\n\nContext:\n" + context },
-      { role: "user", content: message.slice(0, MAX_MESSAGE_LENGTH) },
-    ],
-  });
+  try {
+    const completion = await openai.chat.completions.create({
+      model: OPENAI_MODEL,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT + "\n\nContext:\n" + context },
+        { role: "user", content: message.slice(0, MAX_MESSAGE_LENGTH) },
+      ],
+    });
 
-  const reply = completion.choices[0]?.message?.content ?? "I couldn't generate a response.";
-  return NextResponse.json({ reply });
+    const reply = completion.choices[0]?.message?.content ?? "I couldn't generate a response.";
+    return NextResponse.json({ reply });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (/rate limit|quota|insufficient_quota|429/i.test(msg)) {
+      return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
+    }
+    console.error("[chat]", msg);
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "development" ? msg : "Chat failed. Please try again." },
+      { status: 500 }
+    );
+  }
 }

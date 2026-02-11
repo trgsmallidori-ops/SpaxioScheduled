@@ -41,7 +41,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] w-full items-center justify-center bg-[var(--bg)] px-4 py-12">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-soft-lg p-8 shadow-soft-lg">
+      <div className="w-full max-w-md rounded-2xl bg-[var(--surface)] shadow-soft-lg p-8 shadow-soft-lg">
         <h1 className="text-2xl font-bold text-[var(--text)]">{t.signUp}</h1>
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           <div>
@@ -52,7 +52,7 @@ export default function SignupPage() {
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-white px-4 py-3 text-[var(--text)]"
+              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-4 py-3 text-[var(--text)]"
             />
           </div>
           <div>
@@ -64,7 +64,7 @@ export default function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-white px-4 py-3 text-[var(--text)]"
+              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-4 py-3 text-[var(--text)]"
             />
           </div>
           <div>
@@ -76,7 +76,7 @@ export default function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-white px-4 py-3 text-[var(--text)]"
+              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-4 py-3 text-[var(--text)]"
             />
           </div>
           <div>
@@ -88,7 +88,7 @@ export default function SignupPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-white px-4 py-3 text-[var(--text)]"
+              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-4 py-3 text-[var(--text)]"
             />
           </div>
           {error && <p className="text-sm font-semibold text-red-600">{error}</p>}

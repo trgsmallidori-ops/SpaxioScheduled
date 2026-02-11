@@ -113,7 +113,7 @@ export default function CoursesPage() {
           <select
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value as string | "all")}
-            className="w-full max-w-sm rounded-xl border border-[var(--divider)] bg-white px-4 py-3 text-base font-medium text-[var(--text)] shadow-soft focus:border-[var(--accent)]/30 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
+            className="w-full max-w-sm rounded-xl border border-[var(--divider)] bg-[var(--surface)] px-4 py-3 text-base font-medium text-[var(--text)] shadow-soft focus:border-[var(--accent)]/30 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
           >
             <option value="all">{t.allCourses}</option>
             {courses.map((c) => (
@@ -148,7 +148,7 @@ export default function CoursesPage() {
               return (
                 <section
                   key={course.id}
-                  className="rounded-2xl bg-white p-6 shadow-soft"
+                  className="rounded-2xl bg-[var(--surface)] p-6 shadow-soft"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <h2 className="text-xl font-bold text-[var(--text)]">

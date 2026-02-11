@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { formatDisplayDate } from "@/lib/formatDate";
+import { pageMeta } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description: "Privacy policy for SpaxioScheduled — how we handle your data for the school calendar and syllabus planner service.",
+  ...pageMeta({
+    title: "Privacy Policy",
+    description: "Privacy policy for SpaxioScheduled — how we handle your data for the school calendar and syllabus planner service.",
+    path: "/privacy",
+  }),
 };
 
 export default function PrivacyPage() {
@@ -19,6 +24,10 @@ export default function PrivacyPage() {
         </p>
         <p>
           Reminder emails are sent according to your notification preferences. You can update or disable them in your account.
+        </p>
+        <p>
+          For how we use cookies, see our{" "}
+          <Link href="/cookies" className="font-semibold text-[var(--accent)] hover:underline">Cookie Policy</Link>.
         </p>
       </div>
     </div>

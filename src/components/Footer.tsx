@@ -1,0 +1,29 @@
+"use client";
+
+import Link from "next/link";
+import { useLocale } from "@/contexts/LocaleContext";
+
+export function Footer() {
+  const { t } = useLocale();
+  return (
+    <footer className="w-full border-t border-[var(--divider)] bg-[var(--surface)] px-6 py-8 mt-auto">
+      <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-4 text-sm text-[var(--muted)]">
+        <span>© {new Date().getFullYear()} {t.siteName}</span>
+        <div className="flex flex-wrap gap-6">
+          <Link href="/privacy" className="font-semibold text-[var(--text)] hover:text-[var(--accent)]">
+            {t.privacy}
+          </Link>
+          <Link href="/terms" className="font-semibold text-[var(--text)] hover:text-[var(--accent)]">
+            {t.terms}
+          </Link>
+          <Link href="/cookies" className="font-semibold text-[var(--text)] hover:text-[var(--accent)]">
+            {t.cookies}
+          </Link>
+          <Link href="/contact" className="font-semibold text-[var(--text)] hover:text-[var(--accent)]">
+            {t.refunds}
+          </Link>
+        </div>
+      </div>
+    </footer>
+  );
+}

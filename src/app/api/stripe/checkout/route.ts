@@ -1,11 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { stripe, PAID_UPLOADS_PER_PURCHASE, PRICE_UPLOADS_CENTS } from "@/lib/stripe";
+import { apiError, handleUnexpectedError } from "@/lib/api-errors";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 const PRODUCT_BY_LOCALE = {
   en: { name: "10 more uploads", description: "10 additional syllabus uploads for SpaxioScheduled" },
   fr: { name: "10 téléversements de plus", description: "10 téléversements de syllabus supplémentaires pour SpaxioScheduled" },
 } as const;
+
+const checkoutBodySchema = z.object({ locale: z.enum(["en", "fr"]).optional() });
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,26 +18,21 @@ export async function POST(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return apiError("Unauthorized", 401);
     }
 
     if (!stripe) {
       console.error("[stripe/checkout] STRIPE_SECRET_KEY is missing");
-      return NextResponse.json(
-        { error: "Payments are not configured. Add STRIPE_SECRET_KEY in your environment (e.g. Vercel)." },
-        { status: 503 }
+      return apiError(
+        "Payments are not configured. Add STRIPE_SECRET_KEY in your environment (e.g. Vercel).",
+        503
       );
     }
 
-    const body = await request.json().catch(() => ({}));
-    const locale = body.locale === "fr" ? "fr" : "en";
+    const rawBody = await request.json().catch(() => ({}));
+    const parsed = checkoutBodySchema.safeParse(rawBody);
+    const locale = parsed.success && parsed.data.locale === "fr" ? "fr" : "en";
     const product = PRODUCT_BY_LOCALE[locale];
-
-    const { data: quota } = await supabase
-      .from("user_quota")
-      .select("stripe_customer_id")
-      .eq("user_id", user.id)
-      .single();
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const session = await stripe.checkout.sessions.create({
@@ -58,31 +57,17 @@ export async function POST(request: NextRequest) {
       ],
       success_url: `${appUrl}/dashboard?success=1`,
       cancel_url: `${appUrl}/dashboard?canceled=1`,
-      customer_email: quota?.stripe_customer_id ? undefined : user.email,
       client_reference_id: user.id,
       metadata: { user_id: user.id },
-      payment_intent_data: {
-        receipt_email: user.email,
-      },
     });
 
     if (!session.url) {
       console.error("[stripe/checkout] Stripe did not return a session URL");
-      return NextResponse.json({ error: "Could not create checkout session" }, { status: 500 });
+      return apiError("Could not create checkout session", 500);
     }
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[stripe/checkout]", message);
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? message
-            : "Checkout failed. Check your Stripe configuration (STRIPE_SECRET_KEY).",
-      },
-      { status: 500 }
-    );
+    return handleUnexpectedError(err, "stripe/checkout");
   }
 }

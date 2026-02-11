@@ -52,7 +52,7 @@ export function QuotaCard({
       <button
         type="button"
         onClick={handleBuy}
-        className="rounded-xl border border-[var(--accent)]/50 bg-white px-4 py-2 text-sm font-bold text-[var(--accent)] hover:bg-[var(--accent-light)]"
+        className="rounded-xl border border-[var(--accent)]/50 bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--accent)] hover:bg-[var(--accent-light)]"
       >
         {t.testCheckout}
       </button>
@@ -60,7 +60,7 @@ export function QuotaCard({
   }
 
   return (
-    <div className="mt-5 rounded-xl bg-white p-5 shadow-soft">
+    <div className="mt-5 rounded-xl bg-[var(--surface)] p-5 shadow-soft">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-base font-bold text-[var(--text)]">
@@ -79,7 +79,7 @@ export function QuotaCard({
           className={`rounded-xl px-6 py-3 text-base font-bold transition ${
             totalLeft <= 0
               ? "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]"
-              : "border border-[var(--accent)]/50 bg-white text-[var(--accent)] hover:bg-[var(--accent-light)]"
+              : "border border-[var(--accent)]/50 bg-[var(--surface)] text-[var(--accent)] hover:bg-[var(--accent-light)]"
           }`}
         >
           {t.buyUploads}

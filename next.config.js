@@ -5,9 +5,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['pdf-parse'],
-  },
+  serverExternalPackages: ['pdf-parse'],
+  turbopack: {},
   async redirects() {
     return [{ source: '/favicon.ico', destination: '/logo.png', permanent: false }];
   },
@@ -25,10 +24,6 @@ const nextConfig = {
         ],
       },
     ];
-  },
-  webpack: (config) => {
-    config.infrastructureLogging = { level: 'error' };
-    return config;
   },
 };
 

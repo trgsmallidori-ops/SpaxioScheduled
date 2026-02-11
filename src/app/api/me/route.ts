@@ -1,15 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin, isCreator } from "@/lib/auth";
 import { FREE_UPLOADS } from "@/lib/stripe";
+import { handleUnexpectedError } from "@/lib/api-errors";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return NextResponse.json({
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return NextResponse.json({
       user: null,
       isAdmin: false,
       isCreator: false,
@@ -36,10 +38,13 @@ export async function GET() {
       };
     }
   }
-  return NextResponse.json({
-    user: { id: user.id, email: user.email },
-    isAdmin: isAdminUser,
-    isCreator: isCreatorUser,
-    quota,
-  });
+    return NextResponse.json({
+      user: { id: user.id, email: user.email },
+      isAdmin: isAdminUser,
+      isCreator: isCreatorUser,
+      quota,
+    });
+  } catch (err) {
+    return handleUnexpectedError(err, "me");
+  }
 }

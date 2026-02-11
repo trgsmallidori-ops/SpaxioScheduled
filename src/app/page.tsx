@@ -21,7 +21,7 @@ export default function HomePage() {
 
   return (
     <div className="w-full min-h-[calc(100vh-4rem)] bg-[var(--bg)]">
-      <section className="w-full border-b border-[var(--border)] bg-white px-6 py-16 md:py-20">
+      <section className="w-full border-b border-[var(--border)] bg-[var(--surface)] px-6 py-16 md:py-20">
         <div className="mx-auto max-w-[1600px] flex flex-col md:flex-row md:items-center md:justify-between gap-10">
           <div className="flex-1 min-w-0">
           <h1 className="text-4xl font-extrabold tracking-tight text-[var(--text)] md:text-5xl">
@@ -71,6 +71,14 @@ export default function HomePage() {
               {t.pricingSubline}
             </p>
           </div>
+          <div className="mt-6">
+            <Link
+              href={user ? "/dashboard" : "/signup"}
+              className="inline-block rounded-2xl bg-[var(--accent)] px-8 py-4 text-base font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)]"
+            >
+              {t.upgrade}
+            </Link>
+          </div>
           </div>
           <div className="flex-shrink-0 md:w-[28rem]">
             <HeroImageCarousel />
@@ -84,19 +92,19 @@ export default function HomePage() {
             {t.features}
           </h2>
           <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <li className="rounded-2xl bg-white shadow-soft p-6 shadow-soft">
+            <li className="rounded-2xl bg-[var(--surface)] shadow-soft p-6 shadow-soft">
               <div className="mb-3 text-3xl">📚</div>
               <h3 className="font-bold text-[var(--text)]">{t.feature1}</h3>
             </li>
-            <li className="rounded-2xl bg-white shadow-soft p-6 shadow-soft">
+            <li className="rounded-2xl bg-[var(--surface)] shadow-soft p-6 shadow-soft">
               <div className="mb-3 text-3xl">📅</div>
               <h3 className="font-bold text-[var(--text)]">{t.feature2}</h3>
             </li>
-            <li className="rounded-2xl bg-white shadow-soft p-6 shadow-soft">
+            <li className="rounded-2xl bg-[var(--surface)] shadow-soft p-6 shadow-soft">
               <div className="mb-3 text-3xl">🔔</div>
               <h3 className="font-bold text-[var(--text)]">{t.feature3}</h3>
             </li>
-            <li className="rounded-2xl bg-white shadow-soft p-6 shadow-soft">
+            <li className="rounded-2xl bg-[var(--surface)] shadow-soft p-6 shadow-soft">
               <div className="mb-3 text-3xl">💬</div>
               <h3 className="font-bold text-[var(--text)]">{t.feature4}</h3>
             </li>
@@ -104,7 +112,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="w-full border-t border-[var(--divider)] bg-white px-6 py-14" aria-labelledby="seo-heading">
+      <section className="w-full border-t border-[var(--divider)] bg-[var(--surface)] px-6 py-14" aria-labelledby="seo-heading">
         <div className="mx-auto max-w-[1600px]">
           <h2 id="seo-heading" className="text-2xl font-bold text-[var(--text)]">
             The smart course outline calendar and school calendar for students
@@ -123,15 +131,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="w-full border-t border-[var(--divider)] bg-white px-6 py-8">
-        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-4 text-sm text-[var(--muted)]">
-          <span>© {new Date().getFullYear()} {t.siteName}</span>
-          <div className="flex gap-6">
-            <Link href="/privacy" className="font-semibold text-[var(--text)] hover:text-[var(--accent)]">{t.privacy}</Link>
-            <Link href="/terms" className="font-semibold text-[var(--text)] hover:text-[var(--accent)]">{t.terms}</Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

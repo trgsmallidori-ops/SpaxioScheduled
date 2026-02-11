@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
 import { LocaleProvider } from "@/contexts/LocaleContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Header } from "@/components/Header";
-import { defaultMeta, SITE_URL, buildJsonLd } from "@/lib/seo";
+import { Footer } from "@/components/Footer";
+import { defaultMeta, SITE_URL, ogImageUrl, buildJsonLd } from "@/lib/seo";
 
 const nunito = Nunito({
   subsets: ["latin"],
@@ -29,14 +31,15 @@ export const metadata: Metadata = {
     siteName: "SpaxioScheduled",
     title: defaultMeta.title,
     description: defaultMeta.description,
-    images: [{ url: "/logo.png", width: 1200, height: 630, alt: "SpaxioScheduled - AI School Calendar" }],
+    images: [{ url: ogImageUrl, width: 1200, height: 630, alt: "SpaxioScheduled - AI School Calendar" }],
   },
   twitter: {
     card: "summary_large_image",
     title: defaultMeta.title,
     description: defaultMeta.description,
-    images: ["/logo.png"],
+    images: [ogImageUrl],
   },
+  referrer: "origin-when-cross-origin",
   robots: {
     index: true,
     follow: true,
@@ -58,18 +61,28 @@ export default function RootLayout({
   const jsonLd = buildJsonLd();
 
   return (
-    <html lang="en" className={nunito.variable}>
+    <html lang="en" className={nunito.variable} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var t=localStorage.getItem('spaxio-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);})();`,
+          }}
+        />
+      </head>
       <body className={`min-h-screen w-full ${nunito.className} antialiased text-[var(--text)] bg-[var(--bg)]`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <LocaleProvider>
-          <Header />
-          <main className="w-full min-h-[calc(100vh-4rem)] bg-[var(--bg)]">
-            {children}
-          </main>
-        </LocaleProvider>
+        <ThemeProvider>
+          <LocaleProvider>
+            <Header />
+            <main className="w-full min-h-[calc(100vh-4rem)] bg-[var(--bg)] flex flex-col">
+              {children}
+            </main>
+            <Footer />
+          </LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

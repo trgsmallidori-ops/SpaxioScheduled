@@ -179,7 +179,7 @@ export function CalendarView({
         const dayEvents = getEventsForDay(current);
         dayEvents.sort((a, b) => (a.event_time || "").localeCompare(b.event_time || ""));
         return (
-          <div className="rounded-xl bg-white p-4 shadow-soft">
+          <div className="rounded-xl bg-[var(--surface)] p-4 shadow-soft">
             <p className="mb-3 text-sm font-semibold text-[var(--muted)]">
               {formatDisplayDate(format(current, "yyyy-MM-dd"))}
             </p>
@@ -211,7 +211,7 @@ export function CalendarView({
               return (
                 <div
                   key={day.toISOString()}
-                  className={`flex min-h-[140px] flex-col rounded-xl bg-white p-2 shadow-soft ${
+                  className={`flex min-h-[140px] flex-col rounded-xl bg-[var(--surface)] p-2 shadow-soft ${
                     isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""
                   }`}
                 >
@@ -258,7 +258,7 @@ export function CalendarView({
               return (
                 <div
                   key={day.toISOString()}
-                  className={`flex min-h-[100px] flex-col rounded-xl bg-white p-2 shadow-soft ${
+                  className={`flex min-h-[100px] flex-col rounded-xl bg-[var(--surface)] p-2 shadow-soft ${
                     !isCurrentMonth ? "opacity-60" : ""
                   } ${isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""}`}
                 >
@@ -304,7 +304,7 @@ export function CalendarView({
               return (
                 <div
                   key={month.toISOString()}
-                  className={`rounded-xl bg-white p-3 shadow-soft ${
+                  className={`rounded-xl bg-[var(--surface)] p-3 shadow-soft ${
                     isCurrentMonth ? "ring-1 ring-[var(--accent)]" : ""
                   }`}
                 >
@@ -357,7 +357,7 @@ export function CalendarView({
           aria-labelledby="event-dialog-title"
         >
           <div
-            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-soft-lg"
+            className="w-full max-w-sm rounded-2xl bg-[var(--surface)] p-6 shadow-soft-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 id="event-dialog-title" className="text-lg font-bold text-[var(--text)]">

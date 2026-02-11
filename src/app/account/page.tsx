@@ -1,22 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useRouter } from "next/navigation";
 import type { Profile } from "@/types/database";
-import type { NotificationPreferences } from "@/types/database";
 
 export default function AccountPage() {
   const { t } = useLocale();
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [email, setEmail] = useState("");
-  const [remindDays, setRemindDays] = useState(3);
-  const [remindWeeks, setRemindWeeks] = useState(0);
-  const [frequency, setFrequency] = useState("daily");
-  const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [resetError, setResetError] = useState("");
@@ -37,20 +32,6 @@ export default function AccountPage() {
         .eq("id", user.id)
         .single()
         .then(({ data }) => setProfile(data as Profile | null));
-      supabase
-        .from("notification_preferences")
-        .select("*")
-        .eq("user_id", user.id)
-        .single()
-        .then(({ data }) => {
-          if (data) {
-            setPrefs(data as NotificationPreferences);
-            setEmail((data as NotificationPreferences).email);
-            setRemindDays((data as NotificationPreferences).remind_days_before);
-            setRemindWeeks((data as NotificationPreferences).remind_weeks_before);
-            setFrequency((data as NotificationPreferences).frequency);
-          }
-        });
     });
   }, []);
 
@@ -60,23 +41,6 @@ export default function AccountPage() {
     const params = new URLSearchParams(hash.slice(1));
     if (params.get("type") === "recovery") setRecoveryMode(true);
   }, []);
-
-  async function savePrefs(e: React.FormEvent) {
-    e.preventDefault();
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    setSaving(true);
-    await supabase.from("notification_preferences").upsert({
-      user_id: user.id,
-      email: email || user.email,
-      remind_days_before: remindDays,
-      remind_weeks_before: remindWeeks,
-      frequency,
-      updated_at: new Date().toISOString(),
-    });
-    setSaving(false);
-  }
 
   async function setPassword(e: React.FormEvent) {
     e.preventDefault();
@@ -143,7 +107,7 @@ export default function AccountPage() {
                   onChange={(e) => setNewPassword(e.target.value)}
                   minLength={6}
                   required
-                  className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-white px-4 py-3 text-[var(--text)]"
+                  className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-4 py-3 text-[var(--text)]"
                 />
               </div>
               <button
@@ -159,73 +123,20 @@ export default function AccountPage() {
         </section>
       )}
 
-      <section className="mt-8 rounded-2xl bg-white p-6 shadow-soft">
+      <section className="mt-8 rounded-2xl bg-[var(--surface)] p-6 shadow-soft">
         <h2 className="text-lg font-bold text-[var(--text)]">🔔 {t.notifications}</h2>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Set when and how often to get reminders for tests and assignments.
+          {t.manageRemindersOnDashboard}
         </p>
-        <form onSubmit={savePrefs} className="mt-5 space-y-5">
-          <div>
-            <label className="block text-sm font-bold text-[var(--text)]">
-              {t.reminderEmail}
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-white px-4 py-3 text-[var(--text)]"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-bold text-[var(--text)]">
-                {t.daysBefore}
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={remindDays}
-                onChange={(e) => setRemindDays(Number(e.target.value))}
-                className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-white px-4 py-3 text-[var(--text)]"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-[var(--text)]">
-                {t.weeksBefore}
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={remindWeeks}
-                onChange={(e) => setRemindWeeks(Number(e.target.value))}
-                className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-white px-4 py-3 text-[var(--text)]"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-[var(--text)]">
-              {t.frequency}
-            </label>
-            <select
-              value={frequency}
-              onChange={(e) => setFrequency(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-white px-4 py-3 text-[var(--text)]"
-            >
-              <option value="daily">{t.daily}</option>
-              <option value="weekly">{t.weekly}</option>
-            </select>
-          </div>
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-xl bg-[var(--accent)] px-6 py-3 text-base font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50"
-          >
-            {saving ? "..." : t.save}
-          </button>
-        </form>
+        <Link
+          href="/dashboard"
+          className="mt-3 inline-block rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)]"
+        >
+          {t.calendar} → {t.remindMe}
+        </Link>
       </section>
 
-      <section className="mt-8 rounded-2xl bg-white p-6 shadow-soft">
+      <section className="mt-8 rounded-2xl bg-[var(--surface)] p-6 shadow-soft">
         <h2 className="text-lg font-bold text-[var(--text)]">{t.editProfile}</h2>
         <p className="mt-2 text-sm text-[var(--muted)]">
           Profile is synced with your login.
@@ -239,7 +150,7 @@ export default function AccountPage() {
             type="button"
             onClick={sendPasswordReset}
             disabled={resetting}
-            className="mt-3 rounded-xl border border-[var(--accent)]/50 bg-white px-5 py-2.5 text-sm font-bold text-[var(--accent)] hover:bg-[var(--accent-light)] disabled:opacity-50"
+            className="mt-3 rounded-xl border border-[var(--accent)]/50 bg-[var(--surface)] px-5 py-2.5 text-sm font-bold text-[var(--accent)] hover:bg-[var(--accent-light)] disabled:opacity-50"
           >
             {resetting ? "..." : t.resetPasswordSendLink}
           </button>
