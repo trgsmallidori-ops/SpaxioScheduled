@@ -6,7 +6,6 @@ import {
   FREE_UPLOADS,
   PAID_UPLOADS_PER_PURCHASE,
   stripe,
-  STRIPE_PRICE_ID,
 } from "@/lib/stripe";
 import { isCreatorOrAdmin } from "@/lib/auth";
 import type { ParsedSyllabus } from "@/types/database";

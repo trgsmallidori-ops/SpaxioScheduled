@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
 import type { UserQuota } from "@/types/database";
 import { FREE_UPLOADS } from "@/lib/stripe";
@@ -15,15 +16,27 @@ export function QuotaCard({
   onPurchaseComplete: () => void;
   showTestCheckout?: boolean;
 }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const [checkoutError, setCheckoutError] = useState("");
   const freeUsed = quota?.free_uploads_used ?? 0;
   const paidAvailable = (quota?.paid_uploads_purchased ?? 0) - (quota?.paid_uploads_used ?? 0);
   const totalLeft = Math.max(0, FREE_UPLOADS - freeUsed) + paidAvailable;
 
   async function handleBuy() {
-    const res = await fetch("/api/stripe/checkout", { method: "POST" });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    setCheckoutError("");
+    const res = await fetch("/api/stripe/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locale: locale === "fr" ? "fr" : "en" }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (data.url) {
+      window.location.href = data.url;
+      return;
+    }
+    if (!res.ok) {
+      setCheckoutError(data.error || "Checkout failed. Check your Stripe configuration.");
+    }
   }
 
   if (isCreatorOrAdmin && !showTestCheckout) {
@@ -72,6 +85,9 @@ export function QuotaCard({
           {t.buyUploads}
         </button>
       </div>
+      {checkoutError && (
+        <p className="mt-3 text-sm font-semibold text-red-600">{checkoutError}</p>
+      )}
     </div>
   );
 }
