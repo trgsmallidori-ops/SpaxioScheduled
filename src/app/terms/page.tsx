@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { formatDisplayDate } from "@/lib/formatDate";
 
 export const metadata: Metadata = {
-  title: "Terms | SpaxioScheduled",
-  description: "Terms of use for SpaxioScheduled",
+  title: "Terms of Use",
+  description: "Terms of use for SpaxioScheduled — AI school calendar and course outline calendar service.",
 };
 
 export default function TermsPage() {

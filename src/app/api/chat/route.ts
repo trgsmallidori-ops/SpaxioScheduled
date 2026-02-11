@@ -27,9 +27,19 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { message } = (await request.json()) as { message: string };
-  if (!message?.trim()) {
+  let body: { message?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  const message = typeof body?.message === "string" ? body.message.trim() : "";
+  if (!message) {
     return NextResponse.json({ error: "Message required" }, { status: 400 });
+  }
+  const MAX_MESSAGE_LENGTH = 4000;
+  if (message.length > MAX_MESSAGE_LENGTH) {
+    return NextResponse.json({ error: "Message too long" }, { status: 400 });
   }
 
   const { data: courses } = await supabase
@@ -85,7 +95,7 @@ ${eventsText || "No upcoming events."}
     model: OPENAI_MODEL,
     messages: [
       { role: "system", content: SYSTEM_PROMPT + "\n\nContext:\n" + context },
-      { role: "user", content: message },
+      { role: "user", content: message.slice(0, MAX_MESSAGE_LENGTH) },
     ],
   });
 

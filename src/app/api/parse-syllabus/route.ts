@@ -78,6 +78,25 @@ async function handleParseSyllabus(request: NextRequest) {
     return NextResponse.json({ error: "No file" }, { status: 400 });
   }
 
+  const MAX_FILE_BYTES = 15 * 1024 * 1024; // 15 MB
+  if (file.size > MAX_FILE_BYTES) {
+    return NextResponse.json(
+      { error: "File too large. Maximum size is 15 MB." },
+      { status: 400 }
+    );
+  }
+
+  const allowedTypes = [
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
+  if (allowedTypes.indexOf(file.type) === -1) {
+    const name = (file.name || "").toLowerCase();
+    if (!name.endsWith(".pdf") && !name.endsWith(".docx")) {
+      return NextResponse.json({ error: "Invalid file type. Use PDF or Word (.docx)." }, { status: 400 });
+    }
+  }
+
   const admin = createAdminClient();
   const { data: quota } = await admin
     .from("user_quota")
@@ -204,7 +223,7 @@ async function handleParseSyllabus(request: NextRequest) {
     if (Array.isArray(parsed.classSchedule) && parsed.classSchedule.length > 0) {
       return parsed.classSchedule.filter(
         (b): b is { days: string[]; start: string; end: string } =>
-          Array.isArray(b?.days) && b.days.length > 0 && b?.start && b?.end
+          Array.isArray(b?.days) && b.days.length > 0 && Boolean(b?.start && b?.end)
       );
     }
     const ct = parsed.classTime;

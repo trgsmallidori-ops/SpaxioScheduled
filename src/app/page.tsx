@@ -98,6 +98,25 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="w-full border-t border-[var(--divider)] bg-white px-6 py-14" aria-labelledby="seo-heading">
+        <div className="mx-auto max-w-[1600px]">
+          <h2 id="seo-heading" className="text-2xl font-bold text-[var(--text)]">
+            The smart course outline calendar and school calendar for students
+          </h2>
+          <div className="mt-6 grid gap-6 text-[var(--text-secondary)] sm:grid-cols-2">
+            <p className="text-base leading-relaxed">
+              SpaxioScheduled is an <strong>AI school calendar</strong> that turns your syllabi into one unified <strong>course outline calendar</strong>. 
+              Upload your PDF or Word syllabus and get a <strong>school calendar</strong> with all assignments, tests, exams, and class times in one place—no more juggling multiple <strong>course calendar</strong> tabs or paper planners.
+            </p>
+            <p className="text-base leading-relaxed">
+              Whether you need a <strong>syllabus calendar</strong>, <strong>class schedule planner</strong>, or <strong>assignment calendar</strong> for college or university, 
+              our <strong>academic calendar</strong> tool keeps your <strong>student calendar</strong> up to date. Get reminders for your <strong>exam calendar</strong> and deadlines, 
+              and ask the AI assistant about your day—the best <strong>syllabus planner</strong> for your <strong>college calendar</strong> or <strong>university calendar</strong>.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <footer className="w-full border-t border-[var(--divider)] bg-white px-6 py-8">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-4 text-sm text-[var(--muted)]">
           <span>© {new Date().getFullYear()} {t.siteName}</span>

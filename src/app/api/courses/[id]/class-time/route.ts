@@ -15,18 +15,23 @@ export async function PATCH(
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const body = await request.json();
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!id || typeof id !== "string" || !UUID_REGEX.test(id)) {
+    return NextResponse.json({ error: "Invalid course id" }, { status: 400 });
+  }
+
+  let body: { start?: string; end?: string; days?: string[]; classSchedule?: ClassScheduleBlock[] };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
   const {
     start,
     end,
     days,
     classSchedule,
-  } = body as {
-    start?: string;
-    end?: string;
-    days?: string[];
-    classSchedule?: ClassScheduleBlock[];
-  };
+  } = body;
 
   const { data: course } = await supabase
     .from("courses")
@@ -49,9 +54,10 @@ export async function PATCH(
     return "09:00:00";
   };
 
+  const MAX_BLOCKS = 20;
   const rawBlocks: ClassScheduleBlock[] =
     Array.isArray(classSchedule) && classSchedule.length > 0
-      ? classSchedule
+      ? classSchedule.slice(0, MAX_BLOCKS)
       : start && end && Array.isArray(days) && days.length > 0
         ? [{ days, start, end }]
         : [];

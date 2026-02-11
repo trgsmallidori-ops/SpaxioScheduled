@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { formatDisplayDate } from "@/lib/formatDate";
 
 export const metadata: Metadata = {
-  title: "Privacy | SpaxioScheduled",
-  description: "Privacy policy for SpaxioScheduled",
+  title: "Privacy Policy",
+  description: "Privacy policy for SpaxioScheduled — how we handle your data for the school calendar and syllabus planner service.",
 };
 
 export default function PrivacyPage() {
