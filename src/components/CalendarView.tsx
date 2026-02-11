@@ -213,7 +213,7 @@ export function CalendarView({
         const dayEvents = getEventsForDay(current);
         dayEvents.sort((a, b) => (a.event_time || "").localeCompare(b.event_time || ""));
         return (
-          <div className="rounded-xl bg-[var(--surface)] p-4 shadow-soft">
+          <div className="rounded-xl bg-[var(--surface)] p-4 shadow-calendar-cell">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-semibold text-[var(--muted)]">
                 {formatDisplayDate(format(current, "yyyy-MM-dd"))}
@@ -256,7 +256,7 @@ export function CalendarView({
               return (
                 <div
                   key={day.toISOString()}
-                  className={`flex min-h-[140px] flex-col rounded-xl bg-[var(--surface)] p-2 shadow-soft ${
+                  className={`flex min-h-[140px] flex-col rounded-xl bg-[var(--surface)] p-2 shadow-calendar-cell ${
                     isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""
                   }`}
                 >
@@ -314,9 +314,9 @@ export function CalendarView({
               return (
                 <div
                   key={day.toISOString()}
-                  className={`flex min-h-[100px] flex-col rounded-xl bg-[var(--surface)] p-2 shadow-soft ${
-                    !isCurrentMonth ? "opacity-60" : ""
-                  } ${isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""}`}
+className={`flex min-h-[100px] flex-col rounded-xl bg-[var(--surface)] p-2 shadow-calendar-cell ${
+                  !isCurrentMonth ? "opacity-60" : ""
+                } ${isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""}`}
                 >
                   {onAddEvent ? (
                     <button
@@ -373,7 +373,7 @@ export function CalendarView({
               return (
                 <div
                   key={month.toISOString()}
-                  className={`rounded-xl bg-[var(--surface)] p-3 shadow-soft ${
+                  className={`rounded-xl bg-[var(--surface)] p-3 shadow-calendar-cell ${
                     isCurrentMonth ? "ring-1 ring-[var(--accent)]" : ""
                   }`}
                 >
