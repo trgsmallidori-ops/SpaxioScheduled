@@ -14,6 +14,11 @@ function courseNeedsClassTime(c: Course): boolean {
   return true;
 }
 
+function courseNeedsTermDates(c: Course): boolean {
+  if (courseNeedsClassTime(c)) return false;
+  return !c.term_end_date || !c.term_start_date;
+}
+
 function courseToBlocks(c: Course): ClassScheduleBlock[] {
   if (Array.isArray(c.class_schedule) && c.class_schedule.length > 0) {
     return c.class_schedule.map((b) => ({
@@ -47,6 +52,10 @@ export function AddClassTime({ onSave }: { onSave: () => void }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [blocks, setBlocks] = useState<ClassScheduleBlock[]>([{ days: [], start: "09:00", end: "10:00" }]);
   const [saving, setSaving] = useState(false);
+  const [termDatesId, setTermDatesId] = useState<string | null>(null);
+  const [termStart, setTermStart] = useState("");
+  const [termEnd, setTermEnd] = useState("");
+  const [savingTerm, setSavingTerm] = useState(false);
 
   useEffect(() => {
     refetchCourses(setCourses);
@@ -95,6 +104,37 @@ export function AddClassTime({ onSave }: { onSave: () => void }) {
   function startEdit(c: Course) {
     setEditingId(c.id);
     setBlocks(courseToBlocks(c));
+  }
+
+  const needTermDates = courses.filter(courseNeedsTermDates);
+
+  async function saveTermDates(courseId: string) {
+    if (!termStart.trim() || !termEnd.trim()) return;
+    setSavingTerm(true);
+    try {
+      const r = await fetch(`/api/courses/${courseId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ term_start_date: termStart.trim(), term_end_date: termEnd.trim() }),
+      });
+      if (r.ok) {
+        const c = courses.find((x) => x.id === courseId);
+        if (c && (c.class_schedule?.length ?? 0) > 0) {
+          await fetch(`/api/courses/${courseId}/class-time`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ classSchedule: c.class_schedule }),
+          });
+        }
+        setTermDatesId(null);
+        setTermStart("");
+        setTermEnd("");
+        refetchCourses(setCourses);
+        onSave();
+      }
+    } finally {
+      setSavingTerm(false);
+    }
   }
 
   return (
@@ -178,6 +218,61 @@ export function AddClassTime({ onSave }: { onSave: () => void }) {
           </li>
         ))}
       </ul>
+
+      {needTermDates.length > 0 && (
+        <div className="mt-6 border-t border-[var(--border-subtle)] pt-5">
+          <h3 className="text-base font-bold text-[var(--text)]">📅 {t.setTermDates ?? "Set term dates"}</h3>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            {t.setTermDatesPrompt ?? "Set first/last day of term so classes don't extend past your semester."}
+          </p>
+          <ul className="mt-3 space-y-3">
+            {needTermDates.map((c) => (
+              <li key={c.id} className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface)]/80 p-3">
+                <span className="font-semibold text-[var(--text)]">{c.name}</span>
+                {termDatesId === c.id ? (
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <input
+                      type="date"
+                      value={termStart}
+                      onChange={(e) => setTermStart(e.target.value)}
+                      className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="date"
+                      value={termEnd}
+                      onChange={(e) => setTermEnd(e.target.value)}
+                      className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-2 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => saveTermDates(c.id)}
+                      disabled={savingTerm || !termStart.trim() || !termEnd.trim()}
+                      className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+                    >
+                      {savingTerm ? "..." : t.save}
+                    </button>
+                    <button type="button" onClick={() => setTermDatesId(null)} className="text-sm font-semibold text-[var(--muted)]">
+                      {t.cancel}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTermDatesId(c.id);
+                      setTermStart(c.term_start_date ?? "");
+                      setTermEnd(c.term_end_date ?? "");
+                    }}
+                    className="mt-2 block text-sm font-bold text-[var(--accent)] underline"
+                  >
+                    {t.setTermDates ?? "Set term dates"}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

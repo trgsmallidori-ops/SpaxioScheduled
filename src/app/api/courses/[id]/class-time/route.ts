@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
-import { addDays, format, endOfMonth } from "date-fns";
+import { addDays, format, endOfMonth, startOfDay, parseISO } from "date-fns";
 import { enUS } from "date-fns/locale";
 import type { ClassScheduleBlock } from "@/types/database";
 
@@ -35,7 +35,7 @@ export async function PATCH(
 
   const { data: course } = await supabase
     .from("courses")
-    .select("id, user_id")
+    .select("id, user_id, term_start_date, term_end_date")
     .eq("id", id)
     .eq("user_id", user.id)
     .single();
@@ -102,8 +102,19 @@ export async function PATCH(
   }
 
   if (blocks.length > 0) {
-    const startDate = new Date();
-    const endDate = endOfMonth(addDays(startDate, 120));
+    const today = startOfDay(new Date());
+    let startDate: Date = today;
+    let endDate: Date = endOfMonth(addDays(today, 120));
+    if (course.term_start_date) {
+      const termStart = startOfDay(parseISO(course.term_start_date));
+      if (termStart > today) startDate = termStart;
+      else startDate = today;
+    }
+    if (course.term_end_date) {
+      const termEnd = startOfDay(parseISO(course.term_end_date));
+      endDate = termEnd;
+    }
+    if (startDate > endDate) endDate = startDate;
     const events: {
       user_id: string;
       course_id: string;

@@ -16,6 +16,8 @@ export type Course = {
   raw_schedule: Record<string, unknown> | null;
   assignment_weights: Record<string, number> | null;
   file_path: string | null;
+  term_start_date: string | null;
+  term_end_date: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -73,4 +75,6 @@ export type ParsedSyllabus = {
   tentativeSchedule: { date: string; title: string; type?: string }[];
   classTime?: { start: string; end: string; days: string[] };
   classSchedule?: { days: string[]; start: string; end: string }[];
+  termStartDate?: string | null;
+  termEndDate?: string | null;
 };

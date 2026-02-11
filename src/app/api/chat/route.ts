@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 
 const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -15,6 +15,12 @@ You MUST only answer questions about:
 - Upcoming assignments, tests, exams
 - What they have on a specific day
 - Dates and deadlines from their calendar
+
+IMPORTANT: Use the "Upcoming events" list in the context to answer:
+- "When is my next assignment?" or "next assignment" → Find the first event in the list with type "assignment" and give its date and title. If none, say they have no upcoming assignments.
+- "When is my next test/exam?" → Find the first event with type "test" or "exam" and give its date and title.
+- "What do I have today?" → List events whose date equals today's date (given in context).
+- "What's due soon?" → List the first few upcoming events in order.
 
 If the user asks about anything else (general knowledge, other topics, or things not in their data), politely say: "I can only help with your SpaxioScheduled calendar and courses. Ask me what you have today, when your next test is, or similar."
 
@@ -76,11 +82,14 @@ export async function POST(request: NextRequest) {
     )
     .join("\n");
 
+  const todayStr = format(new Date(), "yyyy-MM-dd");
   const context = `
+Today's date: ${todayStr}
+
 User's courses:
 ${coursesText || "No courses."}
 
-Upcoming events (from today):
+Upcoming events (from today onward, ordered by date):
 ${eventsText || "No upcoming events."}
 `;
 

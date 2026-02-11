@@ -21,6 +21,19 @@ export function UploadSyllabus({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [parsed, setParsed] = useState<Record<string, unknown> | null>(null);
+  const [needsTermDates, setNeedsTermDates] = useState<{
+    courseId: string;
+    courseName: string;
+    suggestedTermStart?: string;
+    suggestedTermEnd?: string;
+    /** After saving term dates, show class time with these suggestions */
+    suggestedDays?: string[];
+    suggestedStart?: string;
+    suggestedEnd?: string;
+  } | null>(null);
+  const [termStart, setTermStart] = useState("");
+  const [termEnd, setTermEnd] = useState("");
+  const [savingTermDates, setSavingTermDates] = useState(false);
   const [needsClassTime, setNeedsClassTime] = useState<{
     courseId: string;
     courseName: string;
@@ -57,6 +70,7 @@ export function UploadSyllabus({
     setError("");
     setLoading(true);
     setParsed(null);
+    setNeedsTermDates(null);
     setNeedsClassTime(null);
     const formData = new FormData();
     formData.set("file", file);
@@ -83,19 +97,67 @@ export function UploadSyllabus({
         const name = data.parsed?.courseName || data.parsed?.courseCode || "This course";
         const start = data.suggestedStart ? String(data.suggestedStart).slice(0, 5) : "09:00";
         const end = data.suggestedEnd ? String(data.suggestedEnd).slice(0, 5) : "10:00";
-        setNeedsClassTime({
-          courseId: data.courseId,
-          courseName: String(name),
-          suggestedDays: Array.isArray(data.suggestedDays) ? data.suggestedDays : undefined,
-          suggestedStart: start,
-          suggestedEnd: end,
-        });
-        setBlocks([{ start, end, days: Array.isArray(data.suggestedDays) ? data.suggestedDays : [] }]);
+        if (data.needsTermDates) {
+          setNeedsTermDates({
+            courseId: data.courseId,
+            courseName: String(name),
+            suggestedTermStart: data.suggestedTermStart ? String(data.suggestedTermStart).slice(0, 10) : undefined,
+            suggestedTermEnd: data.suggestedTermEnd ? String(data.suggestedTermEnd).slice(0, 10) : undefined,
+            suggestedDays: Array.isArray(data.suggestedDays) ? data.suggestedDays : undefined,
+            suggestedStart: start,
+            suggestedEnd: end,
+          });
+          setTermStart(data.suggestedTermStart ? String(data.suggestedTermStart).slice(0, 10) : "");
+          setTermEnd(data.suggestedTermEnd ? String(data.suggestedTermEnd).slice(0, 10) : "");
+        } else {
+          setNeedsClassTime({
+            courseId: data.courseId,
+            courseName: String(name),
+            suggestedDays: Array.isArray(data.suggestedDays) ? data.suggestedDays : undefined,
+            suggestedStart: start,
+            suggestedEnd: end,
+          });
+          setBlocks([{ start, end, days: Array.isArray(data.suggestedDays) ? data.suggestedDays : [] }]);
+        }
       }
     } catch {
       setError("Network error");
     }
     setLoading(false);
+  }
+
+  async function handleSaveTermDates() {
+    if (!needsTermDates || !termStart.trim() || !termEnd.trim()) return;
+    setSavingTermDates(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/courses/${needsTermDates.courseId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ term_start_date: termStart.trim(), term_end_date: termEnd.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Failed to save term dates");
+        setSavingTermDates(false);
+        return;
+      }
+      const { courseId, courseName, suggestedDays, suggestedStart, suggestedEnd } = needsTermDates;
+      setNeedsTermDates(null);
+      setTermStart("");
+      setTermEnd("");
+      setNeedsClassTime({
+        courseId,
+        courseName,
+        suggestedDays,
+        suggestedStart: suggestedStart ?? "09:00",
+        suggestedEnd: suggestedEnd ?? "10:00",
+      });
+      setBlocks([{ start: suggestedStart ?? "09:00", end: suggestedEnd ?? "10:00", days: suggestedDays ?? [] }]);
+    } catch {
+      setError("Network error");
+    }
+    setSavingTermDates(false);
   }
 
   async function handleSaveClassTime() {
@@ -163,7 +225,7 @@ export function UploadSyllabus({
       >
         {loading ? t.parsing : t.upload}
       </button>
-      {parsed && !needsClassTime && (
+      {parsed && !needsTermDates && !needsClassTime && (
         <div className="mt-5 rounded-xl bg-[var(--green-light)] shadow-soft p-4 text-sm font-semibold text-[var(--text)]">
           <p>Course saved.</p>
           {parsed.classTime || parsed.classSchedule ? (
@@ -171,6 +233,45 @@ export function UploadSyllabus({
           ) : (
             <p>Add class time in the section below to show recurring classes.</p>
           )}
+        </div>
+      )}
+
+      {needsTermDates && (
+        <div className="mt-5 rounded-xl bg-[var(--orange-light)] shadow-soft p-5">
+          <p className="text-sm font-bold text-[var(--text)]">
+            {t.setTermDates ?? "Set term dates"} — {needsTermDates.courseName}
+          </p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            {t.setTermDatesPrompt ?? "We couldn't find the first/last day of class in the syllabus. Enter them so your calendar only shows classes within the term."}
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <label className="flex items-center gap-2 text-sm font-medium text-[var(--text)]">
+              <span>{t.firstDayOfTerm ?? "First day of term"}</span>
+              <input
+                type="date"
+                value={termStart}
+                onChange={(e) => setTermStart(e.target.value)}
+                className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm font-medium text-[var(--text)]">
+              <span>{t.lastDayOfTerm ?? "Last day of term"}</span>
+              <input
+                type="date"
+                value={termEnd}
+                onChange={(e) => setTermEnd(e.target.value)}
+                className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-2 text-sm"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={handleSaveTermDates}
+              disabled={savingTermDates || !termStart.trim() || !termEnd.trim()}
+              className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {savingTermDates ? "..." : t.save}
+            </button>
+          </div>
         </div>
       )}
 

@@ -25,10 +25,19 @@ Return this exact structure:
   "tentativeSchedule": [
     { "date": "YYYY-MM-DD", "title": "string", "type": "assignment|test|exam|other" }
   ],
-  "classSchedule": [ { "days": ["Mon","Tue",...], "start": "HH:MM", "end": "HH:MM" }, ... ]
+  "classSchedule": [ { "days": ["Mon","Tue",...], "start": "HH:MM", "end": "HH:MM" }, ... ],
+  "termStartDate": "YYYY-MM-DD or null",
+  "termEndDate": "YYYY-MM-DD or null"
 }
 
 CRITICAL RULES:
+
+0) termStartDate and termEndDate - TRY HARD to find the first and last day of the term/course:
+   - Look for: "first day of class", "classes begin", "semester begins", "start date", "course runs", "Jan 15 - May 10", "through May 10", "last day of class", "last day of classes", "final exam period", "exam week", academic calendar section, semester dates.
+   - If the syllabus gives a date range (e.g. "Spring 2025: Jan 15 to May 10"), use those as termStartDate and termEndDate.
+   - If you only find one end (e.g. "Final exam May 15"), set termEndDate to that date and termStartDate to null (or infer from context).
+   - Use the SAME year as the tentative schedule dates. If no year is given anywhere, use the current academic year (e.g. 2025 for spring).
+   - Return null only when you truly cannot find any indication of term start or end in the document.
 
 1) tentativeSchedule - BE THOROUGH finding ALL test and exam dates:
    - Search the ENTIRE document for: "midterm", "mid-term", "exam", "final", "test", "quiz", "assessment", "due date", "deadline", "assignment due".
@@ -286,6 +295,16 @@ async function handleParseSyllabus(request: NextRequest) {
     }
   }
 
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/;
+  const termStart =
+    parsed.termStartDate && String(parsed.termStartDate).trim() && dateOnly.test(String(parsed.termStartDate).trim())
+      ? String(parsed.termStartDate).trim()
+      : null;
+  const termEnd =
+    parsed.termEndDate && String(parsed.termEndDate).trim() && dateOnly.test(String(parsed.termEndDate).trim())
+      ? String(parsed.termEndDate).trim()
+      : null;
+
   const { data: course, error: courseErr } = await admin
     .from("courses")
     .insert({
@@ -299,6 +318,8 @@ async function handleParseSyllabus(request: NextRequest) {
       raw_schedule: parsed.tentativeSchedule ?? [],
       assignment_weights: parsed.assignmentWeights ?? {},
       file_path: path,
+      term_start_date: termStart,
+      term_end_date: termEnd,
     })
     .select("id")
     .single();
@@ -327,7 +348,6 @@ async function handleParseSyllabus(request: NextRequest) {
     weight_percent: number | null;
   }[] = [];
 
-  const dateOnly = /^\d{4}-\d{2}-\d{2}$/;
   for (const item of parsed.tentativeSchedule || []) {
     const date = item?.date && String(item.date).trim();
     if (!date || !dateOnly.test(date)) continue;
@@ -383,21 +403,34 @@ async function handleParseSyllabus(request: NextRequest) {
   }
 
   const suggestedDays: string[] = [];
+  let suggestedTermStart: string | undefined;
+  let suggestedTermEnd: string | undefined;
   if (parsed.tentativeSchedule?.length) {
     const seen = new Set<string>();
-    const dateOnly = /^\d{4}-\d{2}-\d{2}$/;
+    const validDates: string[] = [];
     for (const item of parsed.tentativeSchedule) {
       const d = item?.date && String(item.date).trim();
       if (!d || !dateOnly.test(d)) continue;
+      validDates.push(d);
       const dayName = format(new Date(d + "T12:00:00"), "EEE", { locale: enUS });
       if (dayOrder.includes(dayName)) seen.add(dayName);
     }
     suggestedDays.push(...dayOrder.filter((day) => seen.has(day)));
+    if (validDates.length > 0) {
+      validDates.sort();
+      suggestedTermStart = validDates[0];
+      suggestedTermEnd = validDates[validDates.length - 1];
+    }
   }
+
+  const needsTermDates = !termStart || !termEnd;
 
   return NextResponse.json({
     courseId: course.id,
     needsClassTime: true,
+    needsTermDates: needsTermDates || undefined,
+    suggestedTermStart: needsTermDates ? (termStart ?? suggestedTermStart) : undefined,
+    suggestedTermEnd: needsTermDates ? (termEnd ?? suggestedTermEnd) : undefined,
     suggestedDays: suggestedDays.length ? suggestedDays : undefined,
     suggestedStart: singleBlock?.start ?? undefined,
     suggestedEnd: singleBlock?.end ?? undefined,
