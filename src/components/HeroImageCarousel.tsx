@@ -12,8 +12,24 @@ const HERO_IMAGES = [
 
 const SHUFFLE_INTERVAL_MS = 4000;
 
+function PlaceholderSlide() {
+  return (
+    <div
+      className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--accent-light)] to-[var(--accent)]/20"
+      aria-hidden
+    >
+      <span className="text-center text-lg font-bold text-[var(--text)]/80">
+        Your syllabus,
+        <br />
+        one calendar.
+      </span>
+    </div>
+  );
+}
+
 export function HeroImageCarousel() {
   const [index, setIndex] = useState(0);
+  const [failed, setFailed] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -21,6 +37,20 @@ export function HeroImageCarousel() {
     }, SHUFFLE_INTERVAL_MS);
     return () => clearInterval(id);
   }, []);
+
+  const handleError = (i: number) => {
+    setFailed((prev) => ({ ...prev, [i]: true }));
+  };
+
+  const allFailed = HERO_IMAGES.length === Object.keys(failed).length;
+
+  if (allFailed) {
+    return (
+      <div className="relative w-full max-w-md aspect-[4/3] rounded-2xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg)] shadow-soft">
+        <PlaceholderSlide />
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full max-w-md aspect-[4/3] rounded-2xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg)] shadow-soft">
@@ -30,14 +60,19 @@ export function HeroImageCarousel() {
           className="absolute inset-0 transition-opacity duration-700 ease-in-out"
           style={{ opacity: i === index ? 1 : 0, zIndex: i === index ? 1 : 0 }}
         >
-          <Image
-            src={src}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 28rem"
-            unoptimized
-          />
+          {failed[i] ? (
+            <PlaceholderSlide />
+          ) : (
+            <Image
+              src={src}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 28rem"
+              unoptimized
+              onError={() => handleError(i)}
+            />
+          )}
         </div>
       ))}
       <div className="absolute bottom-2 left-0 right-0 z-10 flex justify-center gap-1.5">

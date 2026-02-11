@@ -61,6 +61,9 @@ export async function POST(request: NextRequest) {
       customer_email: quota?.stripe_customer_id ? undefined : user.email,
       client_reference_id: user.id,
       metadata: { user_id: user.id },
+      payment_intent_data: {
+        receipt_email: user.email,
+      },
     });
 
     if (!session.url) {
