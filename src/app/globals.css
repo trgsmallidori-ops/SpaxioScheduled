@@ -6,6 +6,7 @@
   --bg: #f6f7fb;
   --surface: #ffffff;
   --surface-elevated: #ffffff;
+  --input-bg: #ffffff;
   --border: #eef0f3;
   --border-subtle: #f2f4f7;
   --divider: #f0f2f5;
@@ -30,8 +31,9 @@
   --bg: #0f172a;
   --surface: #1e293b;
   --surface-elevated: #334155;
+  --input-bg: #334155;
   --border: #334155;
-  --border-subtle: #1e293b;
+  --border-subtle: #475569;
   --divider: #334155;
   --text: #ffffff;
   --text-secondary: #e2e8f0;

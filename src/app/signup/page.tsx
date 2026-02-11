@@ -3,11 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useConsent } from "@/contexts/ConsentContext";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
   const { t } = useLocale();
+  const { hasConsented, openConsentModal } = useConsent();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -19,6 +21,11 @@ export default function SignupPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (!hasConsented) {
+      setError(t.mustAcceptToSignUp ?? "You must accept the Terms, Privacy Policy and Cookies to create an account.");
+      openConsentModal();
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -52,7 +59,7 @@ export default function SignupPage() {
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-4 py-3 text-[var(--text)]"
+              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--input-bg)] px-4 py-3 text-[var(--text)]"
             />
           </div>
           <div>
@@ -64,7 +71,7 @@ export default function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-4 py-3 text-[var(--text)]"
+              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--input-bg)] px-4 py-3 text-[var(--text)]"
             />
           </div>
           <div>
@@ -76,7 +83,7 @@ export default function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-4 py-3 text-[var(--text)]"
+              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--input-bg)] px-4 py-3 text-[var(--text)]"
             />
           </div>
           <div>
@@ -88,13 +95,22 @@ export default function SignupPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-4 py-3 text-[var(--text)]"
+              className="mt-2 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--input-bg)] px-4 py-3 text-[var(--text)]"
             />
           </div>
+          {!hasConsented && (
+            <p className="rounded-xl bg-[var(--orange-light)] p-3 text-sm font-semibold text-[var(--text)]">
+              {t.mustAcceptToSignUp ?? "You must accept the Terms, Privacy Policy and Cookies to create an account."}
+              {" "}
+              <button type="button" onClick={openConsentModal} className="font-bold text-[var(--accent)] underline hover:no-underline">
+                {t.acceptAll ?? "Accept all"}
+              </button>
+            </p>
+          )}
           {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !hasConsented}
             className="w-full rounded-xl bg-[var(--accent)] py-3.5 text-base font-bold text-white transition hover:bg-[var(--accent-hover)] disabled:opacity-50"
           >
             {loading ? "..." : t.signUp}

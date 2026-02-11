@@ -161,6 +161,11 @@ export const translations = {
     refundReasonPlaceholder: "Please describe why you are requesting a refund...",
     sendRefundRequest: "Send refund request",
     refundRequestSent: "Your request has been sent. We will respond to your email.",
+    consentTitle: "Terms, Privacy & Cookies",
+    consentMessage: "We ask you to accept our Terms of Use, Privacy Policy and Cookie Policy. You may read them or simply accept to continue.",
+    acceptAll: "Accept all",
+    continueWithoutAccepting: "Continue without accepting",
+    mustAcceptToSignUp: "You must accept the Terms, Privacy Policy and Cookies to create an account.",
   },
   fr: {
     siteName: "SpaxioScheduled",
@@ -324,6 +329,11 @@ export const translations = {
     refundReasonPlaceholder: "Veuillez indiquer pourquoi vous demandez un remboursement...",
     sendRefundRequest: "Envoyer la demande",
     refundRequestSent: "Votre demande a été envoyée. Nous vous répondrons par courriel.",
+    consentTitle: "Conditions, confidentialité et cookies",
+    consentMessage: "Nous vous demandons d'accepter nos conditions d'utilisation, notre politique de confidentialité et notre politique de cookies. Vous pouvez les lire ou simplement accepter pour continuer.",
+    acceptAll: "Tout accepter",
+    continueWithoutAccepting: "Continuer sans accepter",
+    mustAcceptToSignUp: "Vous devez accepter les conditions, la politique de confidentialité et les cookies pour créer un compte.",
   },
 } as const;
 

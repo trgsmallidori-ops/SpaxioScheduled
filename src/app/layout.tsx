@@ -3,6 +3,8 @@ import { Nunito } from "next/font/google";
 import "./globals.css";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ConsentProvider } from "@/contexts/ConsentContext";
+import { ConsentModal } from "@/components/ConsentModal";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { defaultMeta, SITE_URL, ogImageUrl, buildJsonLd } from "@/lib/seo";
@@ -75,13 +77,16 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <ThemeProvider>
-          <LocaleProvider>
-            <Header />
-            <main className="w-full min-h-[calc(100vh-4rem)] bg-[var(--bg)] flex flex-col">
-              {children}
-            </main>
-            <Footer />
-          </LocaleProvider>
+          <ConsentProvider>
+            <LocaleProvider>
+              <Header />
+              <main className="w-full min-h-[calc(100vh-4rem)] bg-[var(--bg)] flex flex-col">
+                {children}
+              </main>
+              <Footer />
+              <ConsentModal />
+            </LocaleProvider>
+          </ConsentProvider>
         </ThemeProvider>
       </body>
     </html>
