@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 
 const HERO_IMAGES = [
@@ -10,7 +10,7 @@ const HERO_IMAGES = [
   "/home/hero-4.png",
 ];
 
-const SHUFFLE_INTERVAL_MS = 4000;
+const ROTATE_INTERVAL_MS = 4000;
 
 function PlaceholderSlide() {
   return (
@@ -31,12 +31,14 @@ export function HeroImageCarousel() {
   const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState<Record<number, boolean>>({});
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      setIndex((i) => (i + 1) % HERO_IMAGES.length);
-    }, SHUFFLE_INTERVAL_MS);
-    return () => clearInterval(id);
+  const goNext = useCallback(() => {
+    setIndex((i) => (i + 1) % HERO_IMAGES.length);
   }, []);
+
+  useEffect(() => {
+    const id = setInterval(goNext, ROTATE_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [goNext]);
 
   const handleError = (i: number) => {
     setFailed((prev) => ({ ...prev, [i]: true }));
@@ -56,9 +58,13 @@ export function HeroImageCarousel() {
     <div className="relative w-full max-w-md aspect-[4/3] rounded-2xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg)] shadow-soft">
       {HERO_IMAGES.map((src, i) => (
         <div
-          key={src}
-          className="absolute inset-0 transition-opacity duration-700 ease-in-out"
-          style={{ opacity: i === index ? 1 : 0, zIndex: i === index ? 1 : 0 }}
+          key={`${src}-${i}`}
+          className="absolute inset-0 transition-opacity duration-500 ease-in-out"
+          style={{
+            opacity: i === index ? 1 : 0,
+            zIndex: i === index ? 1 : 0,
+            pointerEvents: i === index ? "auto" : "none",
+          }}
         >
           {failed[i] ? (
             <PlaceholderSlide />
@@ -67,7 +73,7 @@ export function HeroImageCarousel() {
               src={src}
               alt=""
               fill
-              className="object-cover"
+              className="object-contain"
               sizes="(max-width: 768px) 100vw, 28rem"
               unoptimized
               onError={() => handleError(i)}
