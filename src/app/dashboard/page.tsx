@@ -118,7 +118,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex w-full flex-col gap-6 bg-[var(--bg)] px-6 py-6 lg:flex-row">
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 order-2 lg:order-1">
         {success && (
           <div className="mb-4 rounded-2xl bg-[var(--green-light)] px-5 py-3 text-base font-semibold text-[var(--text)] shadow-soft">
             Payment successful. You have 10 more uploads.
@@ -135,36 +135,6 @@ export default function DashboardPage() {
             <p className="mt-1 text-sm font-medium text-[var(--muted)]">{t.outOfUploadsMessage}</p>
           </div>
         )}
-        <section className="mb-6 rounded-2xl bg-white p-6 shadow-soft">
-          <h2 className="text-xl font-bold text-[var(--text)]">
-            {t.uploadSyllabus}
-          </h2>
-          <p className="mt-2 text-[var(--muted)]">
-            {t.uploadSyllabusDesc}
-          </p>
-          <UploadSyllabus onSuccess={refetchEvents} />
-          <AddClassTime onSave={refetchEvents} />
-          {!isCreatorOrAdmin && (
-            <QuotaCard
-              quota={quota}
-              isCreatorOrAdmin={false}
-              onPurchaseComplete={refetchEvents}
-            />
-          )}
-          {isCreatorOrAdmin && (
-            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl bg-[var(--green-light)] px-5 py-3 shadow-soft">
-              <p className="text-sm font-semibold text-[var(--text)]">
-                You have free uploads (creator or admin).
-              </p>
-              <QuotaCard
-                quota={quota}
-                isCreatorOrAdmin={true}
-                onPurchaseComplete={refetchEvents}
-                showTestCheckout
-              />
-            </div>
-          )}
-        </section>
         <section className="rounded-2xl bg-white shadow-soft">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--divider)] px-6 py-4">
             <h2 className="text-xl font-bold text-[var(--text)]">
@@ -201,7 +171,37 @@ export default function DashboardPage() {
           <CalendarView events={filteredEvents} courseNames={courseNames} onUpdate={refetchEvents} onDeleteEvent={handleDeleteEvent} />
         </section>
       </div>
-      <aside className="w-full shrink-0 lg:w-[340px]">
+      <aside className="order-1 flex w-full flex-col gap-6 shrink-0 lg:order-2 lg:w-[340px]">
+        <section className="rounded-2xl bg-white p-6 shadow-soft">
+          <h2 className="text-xl font-bold text-[var(--text)]">
+            {t.uploadSyllabus}
+          </h2>
+          <p className="mt-2 text-[var(--muted)]">
+            {t.uploadSyllabusDesc}
+          </p>
+          <UploadSyllabus onSuccess={refetchEvents} />
+          <AddClassTime onSave={refetchEvents} />
+          {!isCreatorOrAdmin && (
+            <QuotaCard
+              quota={quota}
+              isCreatorOrAdmin={false}
+              onPurchaseComplete={refetchEvents}
+            />
+          )}
+          {isCreatorOrAdmin && (
+            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl bg-[var(--green-light)] px-5 py-3 shadow-soft">
+              <p className="text-sm font-semibold text-[var(--text)]">
+                You have free uploads (creator or admin).
+              </p>
+              <QuotaCard
+                quota={quota}
+                isCreatorOrAdmin={true}
+                onPurchaseComplete={refetchEvents}
+                showTestCheckout
+              />
+            </div>
+          )}
+        </section>
         <ChatBot />
       </aside>
     </div>

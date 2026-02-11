@@ -1,16 +1,28 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 
-const HERO_IMAGES = [
-  "/home/hero-1.png",
-  "/home/hero-2.png",
-  "/home/hero-3.png",
-  "/home/hero-4.png",
+// Royalty-free images from Unsplash (university classrooms + calendars)
+const HERO_IMAGE_SOURCES = [
+  { src: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&q=80", alt: "University lecture hall" },
+  { src: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&q=80", alt: "University classroom" },
+  { src: "https://images.unsplash.com/photo-1562774053-701939374585?w=800&q=80", alt: "University campus" },
+  { src: "https://images.unsplash.com/photo-1506784365847-bbad939e9335?w=800&q=80", alt: "Calendar and planner" },
+  { src: "https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=800&q=80", alt: "Desk calendar and notes" },
+  { src: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=800&q=80", alt: "Calendar and schedule" },
 ];
 
 const ROTATE_INTERVAL_MS = 4000;
+
+function shuffleArray<T>(array: T[]): T[] {
+  const out = [...array];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
 
 function PlaceholderSlide() {
   return (
@@ -28,12 +40,13 @@ function PlaceholderSlide() {
 }
 
 export function HeroImageCarousel() {
+  const images = useMemo(() => shuffleArray(HERO_IMAGE_SOURCES), []);
   const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState<Record<number, boolean>>({});
 
   const goNext = useCallback(() => {
-    setIndex((i) => (i + 1) % HERO_IMAGES.length);
-  }, []);
+    setIndex((i) => (i + 1) % images.length);
+  }, [images.length]);
 
   useEffect(() => {
     const id = setInterval(goNext, ROTATE_INTERVAL_MS);
@@ -44,7 +57,7 @@ export function HeroImageCarousel() {
     setFailed((prev) => ({ ...prev, [i]: true }));
   };
 
-  const allFailed = HERO_IMAGES.length === Object.keys(failed).length;
+  const allFailed = images.length === Object.keys(failed).length;
 
   if (allFailed) {
     return (
@@ -56,9 +69,9 @@ export function HeroImageCarousel() {
 
   return (
     <div className="relative w-full max-w-md aspect-[4/3] rounded-2xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg)] shadow-soft">
-      {HERO_IMAGES.map((src, i) => (
+      {images.map((item, i) => (
         <div
-          key={`${src}-${i}`}
+          key={`${item.src}-${i}`}
           className="absolute inset-0 transition-opacity duration-500 ease-in-out"
           style={{
             opacity: i === index ? 1 : 0,
@@ -70,19 +83,18 @@ export function HeroImageCarousel() {
             <PlaceholderSlide />
           ) : (
             <Image
-              src={src}
-              alt=""
+              src={item.src}
+              alt={item.alt}
               fill
-              className="object-contain"
+              className="object-cover"
               sizes="(max-width: 768px) 100vw, 28rem"
-              unoptimized
               onError={() => handleError(i)}
             />
           )}
         </div>
       ))}
       <div className="absolute bottom-2 left-0 right-0 z-10 flex justify-center gap-1.5">
-        {HERO_IMAGES.map((_, i) => (
+        {images.map((_, i) => (
           <button
             key={i}
             type="button"
