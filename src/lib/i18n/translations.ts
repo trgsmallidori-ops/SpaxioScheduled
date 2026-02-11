@@ -1,7 +1,7 @@
 export const translations = {
   en: {
     siteName: "SpaxioScheduled",
-    tagline: "Your syllabus, one calendar.",
+    tagline: "Spaxio Scheduled: your syllabus, one calendar.",
     getStarted: "Get started",
     login: "Log in",
     goToDashboard: "Go to dashboard",
@@ -169,7 +169,7 @@ export const translations = {
   },
   fr: {
     siteName: "SpaxioScheduled",
-    tagline: "Votre syllabus, un seul calendrier.",
+    tagline: "Spaxio Scheduled : votre syllabus, un seul calendrier.",
     getStarted: "Commencer",
     login: "Connexion",
     goToDashboard: "Aller au tableau de bord",

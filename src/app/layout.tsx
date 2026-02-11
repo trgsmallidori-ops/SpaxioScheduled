@@ -49,7 +49,10 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: SITE_URL },
   icons: {
-    icon: "/logo.png",
+    icon: [
+      { url: "/logo.png", type: "image/png", sizes: "48x48" },
+      { url: "/logo.png", type: "image/png", sizes: "32x32" },
+    ],
     apple: "/logo.png",
   },
   category: "education",
@@ -65,6 +68,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={nunito.variable} suppressHydrationWarning>
       <head>
+        <link rel="icon" href={`${SITE_URL}/logo.png`} type="image/png" sizes="48x48" />
+        <link rel="apple-touch-icon" href={`${SITE_URL}/logo.png`} />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){var t=localStorage.getItem('spaxio-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);})();`,

@@ -4,10 +4,12 @@ export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://spaxioschedu
 export const ogImageUrl = `${SITE_URL}/logo.png`;
 
 export const defaultMeta = {
-  title: "SpaxioScheduled — AI School Calendar & Course Outline Calendar",
+  title: "Spaxio Scheduled — AI School Calendar & Course Outline Calendar | SpaxioScheduled",
   description:
-    "Turn your syllabi into one smart school calendar. AI-powered course outline calendar for students: upload syllabi, get assignments, tests, and class times in one place. Free syllabus planner with reminders.",
+    "Spaxio Scheduled: turn your syllabi into one smart school calendar. AI-powered course outline calendar for students: upload syllabi, get assignments, tests, and class times in one place. Free syllabus planner with reminders.",
   keywords: [
+    "Spaxio Scheduled",
+    "SpaxioScheduled",
     "course outline calendar",
     "school calendar",
     "AI school calendar",
@@ -31,6 +33,7 @@ export function buildJsonLd() {
       {
         "@type": "WebApplication",
         name: "SpaxioScheduled",
+        alternateName: "Spaxio Scheduled",
         description: defaultMeta.description,
         url: SITE_URL,
         applicationCategory: "EducationalApplication",
@@ -48,12 +51,14 @@ export function buildJsonLd() {
       {
         "@type": "Organization",
         name: "SpaxioScheduled",
+        alternateName: "Spaxio Scheduled",
         url: SITE_URL,
         description: "AI-powered school calendar and course outline calendar for students.",
       },
       {
         "@type": "WebSite",
         name: "SpaxioScheduled",
+        alternateName: "Spaxio Scheduled",
         url: SITE_URL,
         description: defaultMeta.description,
         potentialAction: {
