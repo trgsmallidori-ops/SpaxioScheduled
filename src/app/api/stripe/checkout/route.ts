@@ -40,11 +40,13 @@ export async function POST(request: NextRequest) {
       mode: "payment",
       payment_method_types: ["card"],
       locale,
+      automatic_tax: { enabled: true },
+      adaptive_pricing: { enabled: true },
       line_items: [
         {
           quantity: 1,
           price_data: {
-            currency: "usd",
+            currency: "cad",
             unit_amount: PRICE_UPLOADS_CENTS,
             product_data: {
               name: product.name,

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/contexts/LocaleContext";
 import { createClient } from "@/lib/supabase/client";
+import { HeroImageCarousel } from "@/components/HeroImageCarousel";
 
 export default function HomePage() {
   const { t } = useLocale();
@@ -21,7 +22,8 @@ export default function HomePage() {
   return (
     <div className="w-full min-h-[calc(100vh-4rem)] bg-[var(--bg)]">
       <section className="w-full border-b border-[var(--border)] bg-white px-6 py-16 md:py-20">
-        <div className="mx-auto max-w-[1600px]">
+        <div className="mx-auto max-w-[1600px] flex flex-col md:flex-row md:items-center md:justify-between gap-10">
+          <div className="flex-1 min-w-0">
           <h1 className="text-4xl font-extrabold tracking-tight text-[var(--text)] md:text-5xl">
             {t.siteName}
           </h1>
@@ -68,6 +70,10 @@ export default function HomePage() {
             <p className="w-full text-sm text-[var(--muted)] sm:w-auto">
               {t.pricingSubline}
             </p>
+          </div>
+          </div>
+          <div className="flex-shrink-0 md:w-[28rem]">
+            <HeroImageCarousel />
           </div>
         </div>
       </section>

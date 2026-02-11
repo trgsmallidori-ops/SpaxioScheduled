@@ -68,7 +68,7 @@ export function UploadSyllabus({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (data.code === "QUOTA_EXCEEDED") {
-          setError("No uploads left. Purchase more below.");
+          setError(t.noUploadsLeftPurchase);
         } else {
           const msg = data.error || "Upload failed";
           setError(data.details ? `${msg}\n${data.details}` : msg);

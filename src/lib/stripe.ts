@@ -6,4 +6,4 @@ export const stripe =
 
 export const FREE_UPLOADS = 2;
 export const PAID_UPLOADS_PER_PURCHASE = 10;
-export const PRICE_UPLOADS_CENTS = 500; // $5
+export const PRICE_UPLOADS_CENTS = 500; // $5 CAD

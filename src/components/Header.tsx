@@ -14,6 +14,7 @@ export function Header() {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
+  const [quota, setQuota] = useState<{ totalLeft: number; hasUpgraded: boolean } | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -30,6 +31,7 @@ export function Header() {
     if (!user) {
       setIsAdmin(false);
       setIsCreator(false);
+      setQuota(null);
       return;
     }
     fetch("/api/me")
@@ -37,6 +39,7 @@ export function Header() {
       .then((data) => {
         setIsAdmin(data.isAdmin ?? false);
         setIsCreator(data.isCreator ?? false);
+        setQuota(data.quota ?? null);
       });
   }, [user]);
 
@@ -83,6 +86,14 @@ export function Header() {
           </select>
           {user ? (
             <>
+              {!isCreator && !isAdmin && quota && (quota.totalLeft <= 0 || !quota.hasUpgraded) && (
+                <Link
+                  href="/dashboard"
+                  className="rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white no-underline transition hover:bg-[var(--accent-hover)]"
+                >
+                  {t.upgrade}
+                </Link>
+              )}
               {navLink("/dashboard", t.dashboard, pathname === "/dashboard")}
               {navLink("/dashboard/courses", t.byCourse, pathname === "/dashboard/courses")}
               {navLink("/account", t.myAccount, pathname === "/account")}

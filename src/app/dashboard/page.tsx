@@ -8,6 +8,7 @@ import { UploadSyllabus } from "@/components/UploadSyllabus";
 import { QuotaCard } from "@/components/QuotaCard";
 import { AddClassTime } from "@/components/AddClassTime";
 import { ChatBot } from "@/components/ChatBot";
+import { FREE_UPLOADS } from "@/lib/stripe";
 import type { CalendarEvent as CalEvent } from "@/types/database";
 import type { UserQuota } from "@/types/database";
 import type { Course } from "@/types/database";
@@ -126,6 +127,12 @@ export default function DashboardPage() {
         {canceled && (
           <div className="mb-4 rounded-2xl bg-[var(--orange-light)] px-5 py-3 text-base font-semibold text-[var(--text)] shadow-soft">
             Payment canceled.
+          </div>
+        )}
+        {!isCreatorOrAdmin && quota && (quota.paid_uploads_purchased ?? 0) - (quota.paid_uploads_used ?? 0) + Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0)) <= 0 && (
+          <div className="mb-4 rounded-2xl border-2 border-[var(--accent)] bg-[var(--accent-light)]/50 px-5 py-4 text-base font-semibold text-[var(--text)] shadow-soft">
+            <p>{t.outOfUploads}</p>
+            <p className="mt-1 text-sm font-medium text-[var(--muted)]">{t.outOfUploadsMessage}</p>
           </div>
         )}
         <section className="mb-6 rounded-2xl bg-white p-6 shadow-soft">
