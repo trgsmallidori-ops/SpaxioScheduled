@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --border: #eef0f3;
+  --border-subtle: #f2f4f7;
+  --divider: #f0f2f5;
+  --text: #2d3748;
+  --text-secondary: #4a5568;
+  --muted: #718096;
+  --muted-strong: #4a5568;
+  --accent: #4255ff;
+  --accent-hover: #3142c9;
+  --accent-light: #e8ebff;
+  --green: #23c275;
+  --green-light: #e6f7ef;
+  --orange: #ffcd1f;
+  --orange-light: #fff8e6;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color-scheme: light;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+input,
+button,
+select,
+textarea,
+[role="button"],
+a[href].btn-style {
+  border-radius: var(--radius);
+}
+
+input,
+textarea,
+select {
+  border-color: var(--divider);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-light);
+}
+
+#__next,
+main {
+  min-height: 100%;
+  width: 100%;
+  background: var(--bg);
+}
+
+.shadow-soft {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-soft-lg {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}

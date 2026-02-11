@@ -1,0 +1,10 @@
+import Stripe from "stripe";
+
+export const stripe =
+  process.env.STRIPE_SECRET_KEY &&
+  new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" });
+
+export const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID_7_UPLOADS;
+export const FREE_UPLOADS = 2;
+export const PAID_UPLOADS_PER_PURCHASE = 10;
+export const PRICE_UPLOADS_CENTS = 500; // $5
