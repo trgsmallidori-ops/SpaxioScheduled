@@ -8,7 +8,6 @@ import { ReminderSettings } from "@/components/ReminderSettings";
 import { UploadSyllabus } from "@/components/UploadSyllabus";
 import { QuotaCard } from "@/components/QuotaCard";
 import { AddClassTime } from "@/components/AddClassTime";
-import { ChatBot } from "@/components/ChatBot";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { FREE_UPLOADS } from "@/lib/stripe";
 import type { CalendarEvent as CalEvent } from "@/types/database";
@@ -116,6 +115,20 @@ export default function DashboardPage() {
     refetchEvents();
   }
 
+  async function handleAddEvent(payload: { title: string; event_date: string; event_time: string | null }) {
+    if (!userId) return;
+    const supabase = createClient();
+    await supabase.from("calendar_events").insert({
+      user_id: userId,
+      course_id: null,
+      title: payload.title,
+      event_type: "other",
+      event_date: payload.event_date,
+      event_time: payload.event_time || null,
+    });
+    refetchEvents();
+  }
+
   async function handleDeleteCourse(courseId: string) {
     const supabase = createClient();
     await supabase.from("courses").delete().eq("id", courseId);
@@ -183,7 +196,7 @@ export default function DashboardPage() {
               />
             )}
           </div>
-          <CalendarView events={filteredEvents} courseNames={courseNames} onUpdate={refetchEvents} onDeleteEvent={handleDeleteEvent} />
+          <CalendarView events={filteredEvents} courseNames={courseNames} onUpdate={refetchEvents} onDeleteEvent={handleDeleteEvent} onAddEvent={handleAddEvent} />
         </section>
       </div>
       <aside className="order-1 flex w-full flex-col gap-6 shrink-0 lg:order-2 lg:w-[340px]">
@@ -233,7 +246,6 @@ export default function DashboardPage() {
             </div>
           )}
         </section>
-        <ChatBot />
       </aside>
 
       <ConfirmModal

@@ -3,8 +3,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
 
+const FAB_SIZE = 56;
+const PANEL_WIDTH = 380;
+const PANEL_MAX_HEIGHT = 420;
+
 export function ChatBot() {
   const { t } = useLocale();
+  const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [loading, setLoading] = useState(false);
@@ -42,53 +47,104 @@ export function ChatBot() {
   }
 
   return (
-    <div className="rounded-2xl bg-[var(--surface)] shadow-soft">
-      <h2 className="border-b border-[var(--divider)] px-5 py-4 text-lg font-bold text-[var(--text)]">
-        💬 {t.askAssistant}
-      </h2>
-      <div className="flex max-h-[400px] flex-col">
-        <div className="min-h-[200px] space-y-3 overflow-y-auto p-4">
-          {messages.length === 0 && (
-            <p className="text-sm font-medium text-[var(--muted)]">{t.placeholder}</p>
-          )}
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`rounded-xl px-4 py-2.5 text-sm font-medium ${
-                msg.role === "user"
-                  ? "ml-8 bg-[var(--accent)] text-white"
-                  : "mr-8 bg-[var(--border-subtle)] text-[var(--text)]"
-              }`}
-            >
-              {msg.content}
-            </div>
-          ))}
-          {loading && (
-            <div className="mr-8 rounded-xl bg-[var(--border-subtle)] px-4 py-2.5 text-sm text-[var(--muted)]">
-              ...
-            </div>
-          )}
-          <div ref={bottomRef} />
-        </div>
-        <form onSubmit={handleSubmit} className="border-t border-[var(--border)] p-4">
-          <div className="flex gap-3">
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder={t.placeholder}
-              className="flex-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-4 py-3 text-[var(--text)]"
-            />
+    <div
+      className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-0"
+      style={{ margin: 0 }}
+    >
+      {/* Expandable panel */}
+      <div
+        className="overflow-hidden rounded-2xl bg-[var(--surface)] shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300 ease-out border border-[var(--border)]"
+        style={{
+          width: open ? PANEL_WIDTH : 0,
+          height: open ? PANEL_MAX_HEIGHT : 0,
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? "auto" : "none",
+        }}
+      >
+        <div className="flex h-full w-[380px] flex-col">
+          <div className="flex shrink-0 items-center justify-between border-b border-[var(--divider)] px-4 py-3">
+            <h2 className="text-base font-bold text-[var(--text)]">
+              💬 {t.askAssistant}
+            </h2>
             <button
-              type="submit"
-              disabled={loading}
-              className="rounded-xl bg-[var(--accent)] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--accent-hover)] disabled:opacity-50"
+              type="button"
+              onClick={() => setOpen(false)}
+              className="rounded-full p-1.5 text-[var(--muted)] transition hover:bg-[var(--border-subtle)] hover:text-[var(--text)]"
+              aria-label="Minimize chat"
             >
-              {t.send}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
             </button>
           </div>
-        </form>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-[160px] flex-1 space-y-3 overflow-y-auto p-4">
+              {messages.length === 0 && (
+                <p className="text-sm font-medium text-[var(--muted)]">
+                  {t.placeholder}
+                </p>
+              )}
+              {messages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`rounded-xl px-4 py-2.5 text-sm font-medium ${
+                    msg.role === "user"
+                      ? "ml-8 bg-[var(--accent)] text-white"
+                      : "mr-8 bg-[var(--border-subtle)] text-[var(--text)]"
+                  }`}
+                >
+                  {msg.content}
+                </div>
+              ))}
+              {loading && (
+                <div className="mr-8 rounded-xl bg-[var(--border-subtle)] px-4 py-2.5 text-sm text-[var(--muted)]">
+                  ...
+                </div>
+              )}
+              <div ref={bottomRef} />
+            </div>
+            <form
+              onSubmit={handleSubmit}
+              className="shrink-0 border-t border-[var(--border)] p-4"
+            >
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder={t.placeholder}
+                  className="flex-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--text)]"
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[var(--accent-hover)] disabled:opacity-50"
+                >
+                  {t.send}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
+
+      {/* Floating circle button */}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-lg transition hover:bg-[var(--accent-hover)] hover:scale-105 active:scale-95"
+        style={{ width: FAB_SIZE, height: FAB_SIZE }}
+        aria-label={open ? "Minimize chat" : "Open chat"}
+      >
+        {open ? (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        ) : (
+          <span className="text-2xl" aria-hidden>💬</span>
+        )}
+      </button>
     </div>
   );
 }

@@ -40,11 +40,13 @@ export function CalendarView({
   courseNames = {},
   onUpdate,
   onDeleteEvent,
+  onAddEvent,
 }: {
   events: CalendarEvent[];
   courseNames?: Record<string, string>;
   onUpdate: () => void;
   onDeleteEvent?: (eventId: string) => void | Promise<void>;
+  onAddEvent?: (payload: { title: string; event_date: string; event_time: string | null }) => void | Promise<void>;
 }) {
   const { t } = useLocale();
   const [current, setCurrent] = useState(new Date());
@@ -52,6 +54,10 @@ export function CalendarView({
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [addEventDay, setAddEventDay] = useState<string | null>(null);
+  const [addEventTitle, setAddEventTitle] = useState("");
+  const [addEventTime, setAddEventTime] = useState("");
+  const [addEventSaving, setAddEventSaving] = useState(false);
 
   const getEventsForDay = (day: Date) => {
     const key = format(day, "yyyy-MM-dd");
@@ -96,6 +102,29 @@ export function CalendarView({
       setShowDeleteConfirm(false);
     } finally {
       setDeleting(false);
+    }
+  }
+
+  function openAddForDay(day: Date) {
+    if (!onAddEvent) return;
+    setAddEventDay(format(day, "yyyy-MM-dd"));
+    setAddEventTitle("");
+    setAddEventTime("");
+  }
+
+  async function submitAddEvent() {
+    if (!addEventDay || !onAddEvent || !addEventTitle.trim()) return;
+    setAddEventSaving(true);
+    try {
+      await onAddEvent({
+        title: addEventTitle.trim(),
+        event_date: addEventDay,
+        event_time: addEventTime.trim() || null,
+      });
+      onUpdate();
+      setAddEventDay(null);
+    } finally {
+      setAddEventSaving(false);
     }
   }
 
@@ -185,9 +214,20 @@ export function CalendarView({
         dayEvents.sort((a, b) => (a.event_time || "").localeCompare(b.event_time || ""));
         return (
           <div className="rounded-xl bg-[var(--surface)] p-4 shadow-soft">
-            <p className="mb-3 text-sm font-semibold text-[var(--muted)]">
-              {formatDisplayDate(format(current, "yyyy-MM-dd"))}
-            </p>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-[var(--muted)]">
+                {formatDisplayDate(format(current, "yyyy-MM-dd"))}
+              </p>
+              {onAddEvent && (
+                <button
+                  type="button"
+                  onClick={() => openAddForDay(current)}
+                  className="rounded-xl bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white hover:bg-[var(--accent-hover)]"
+                >
+                  + {t.addEvent}
+                </button>
+              )}
+            </div>
             {dayEvents.length === 0 ? (
               <p className="text-sm text-[var(--muted)]">{t.noEvents}</p>
             ) : (
@@ -220,9 +260,20 @@ export function CalendarView({
                     isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""
                   }`}
                 >
-                  <p className={`shrink-0 text-center font-bold ${isToday ? "text-[var(--accent)]" : "text-[var(--text)]"}`}>
-                    {format(day, "d")} {dayLabels[day.getDay() === 0 ? 6 : day.getDay() - 1]}
-                  </p>
+                  {onAddEvent ? (
+                    <button
+                      type="button"
+                      onClick={() => openAddForDay(day)}
+                      className={`shrink-0 text-center font-bold hover:underline ${isToday ? "text-[var(--accent)]" : "text-[var(--text)]"}`}
+                      title={t.addEvent}
+                    >
+                      {format(day, "d")} {dayLabels[day.getDay() === 0 ? 6 : day.getDay() - 1]} +
+                    </button>
+                  ) : (
+                    <p className={`shrink-0 text-center font-bold ${isToday ? "text-[var(--accent)]" : "text-[var(--text)]"}`}>
+                      {format(day, "d")} {dayLabels[day.getDay() === 0 ? 6 : day.getDay() - 1]}
+                    </p>
+                  )}
                   <div className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto max-h-[200px]">
                     {dayEvents.length === 0 ? (
                       <span className="text-[10px] text-[var(--muted)]">{t.noEvents}</span>
@@ -267,13 +318,26 @@ export function CalendarView({
                     !isCurrentMonth ? "opacity-60" : ""
                   } ${isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""}`}
                 >
-                  <span
-                    className={`shrink-0 ${
-                      isToday ? "font-bold text-[var(--accent)]" : "font-semibold text-[var(--text)]"
-                    }`}
-                  >
-                    {format(day, "d")}
-                  </span>
+                  {onAddEvent ? (
+                    <button
+                      type="button"
+                      onClick={() => openAddForDay(day)}
+                      className={`shrink-0 w-fit rounded px-1 font-semibold hover:bg-[var(--border-subtle)] ${
+                        isToday ? "font-bold text-[var(--accent)]" : "text-[var(--text)]"
+                      }`}
+                      title={t.addEvent}
+                    >
+                      {format(day, "d")}+
+                    </button>
+                  ) : (
+                    <span
+                      className={`shrink-0 ${
+                        isToday ? "font-bold text-[var(--accent)]" : "font-semibold text-[var(--text)]"
+                      }`}
+                    >
+                      {format(day, "d")}
+                    </span>
+                  )}
                   <div className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto max-h-[220px]">
                     {dayEvents.length === 0 ? (
                       <span className="text-[10px] text-[var(--muted)]">{t.noEvents}</span>
@@ -410,6 +474,74 @@ export function CalendarView({
         onConfirm={confirmDeleteEvent}
         onCancel={() => !deleting && setShowDeleteConfirm(false)}
       />
+
+      {/* Add event modal */}
+      {addEventDay !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => !addEventSaving && setAddEventDay(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-event-title"
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-[var(--surface)] p-6 shadow-soft-lg border border-[var(--border-subtle)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="add-event-title" className="text-lg font-bold text-[var(--text)]">
+              {t.addEvent}
+            </h3>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              {formatDisplayDate(addEventDay)}
+            </p>
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="block text-sm font-bold text-[var(--text)]">
+                  {t.addEventTitle}
+                </label>
+                <input
+                  type="text"
+                  value={addEventTitle}
+                  onChange={(e) => setAddEventTitle(e.target.value)}
+                  placeholder={t.addEventTitlePlaceholder}
+                  className="mt-1 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--input-bg)] px-4 py-2.5 text-[var(--text)]"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[var(--text)]">
+                  {t.addEventTimeOptional}
+                </label>
+                <input
+                  type="text"
+                  value={addEventTime}
+                  onChange={(e) => setAddEventTime(e.target.value)}
+                  placeholder="e.g. 2:00 PM"
+                  className="mt-1 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--input-bg)] px-4 py-2.5 text-[var(--text)]"
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => !addEventSaving && setAddEventDay(null)}
+                disabled={addEventSaving}
+                className="flex-1 rounded-xl bg-[var(--border-subtle)] py-2.5 text-sm font-bold text-[var(--text)] hover:bg-[var(--border)] disabled:opacity-50"
+              >
+                {t.cancel}
+              </button>
+              <button
+                type="button"
+                onClick={submitAddEvent}
+                disabled={addEventSaving || !addEventTitle.trim()}
+                className="flex-1 rounded-xl bg-[var(--accent)] py-2.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50"
+              >
+                {addEventSaving ? "..." : t.save}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

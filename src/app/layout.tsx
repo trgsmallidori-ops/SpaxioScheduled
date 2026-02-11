@@ -5,6 +5,7 @@ import { LocaleProvider } from "@/contexts/LocaleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ConsentProvider } from "@/contexts/ConsentContext";
 import { ConsentModal } from "@/components/ConsentModal";
+import { ChatBot } from "@/components/ChatBot";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { defaultMeta, SITE_URL, ogImageUrl, buildJsonLd } from "@/lib/seo";
@@ -89,6 +90,7 @@ export default function RootLayout({
                 {children}
               </main>
               <Footer />
+              <ChatBot />
               <ConsentModal />
             </LocaleProvider>
           </ConsentProvider>
