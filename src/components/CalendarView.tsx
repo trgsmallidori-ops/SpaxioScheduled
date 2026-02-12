@@ -22,6 +22,7 @@ import {
 } from "date-fns";
 import { useLocale } from "@/contexts/LocaleContext";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { DEFAULT_COURSE_COLOR } from "@/lib/courseColors";
 import type { CalendarEvent } from "@/types/database";
 import { formatDisplayDate } from "@/lib/formatDate";
 
@@ -38,12 +39,14 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 export function CalendarView({
   events,
   courseNames = {},
+  courseColors = {},
   onUpdate,
   onDeleteEvent,
   onAddEvent,
 }: {
   events: CalendarEvent[];
   courseNames?: Record<string, string>;
+  courseColors?: Record<string, string>;
   onUpdate: () => void;
   onDeleteEvent?: (eventId: string) => void | Promise<void>;
   onAddEvent?: (payload: { title: string; event_date: string; event_time: string | null }) => void | Promise<void>;
@@ -58,9 +61,10 @@ export function CalendarView({
   const [addEventTitle, setAddEventTitle] = useState("");
   const [addEventTime, setAddEventTime] = useState("");
   const [addEventSaving, setAddEventSaving] = useState(false);
+  const [selectedDayForDetail, setSelectedDayForDetail] = useState<string | null>(null);
 
-  const getEventsForDay = (day: Date) => {
-    const key = format(day, "yyyy-MM-dd");
+  const getEventsForDay = (day: Date | string) => {
+    const key = typeof day === "string" ? day : format(day, "yyyy-MM-dd");
     return events.filter((e) => e.event_date === key);
   };
 
@@ -148,12 +152,14 @@ export function CalendarView({
     const label = eventLabel(e);
     const courseName = e.course_id ? courseNames[e.course_id] : null;
     const fullTitle = courseName ? `${e.title} — ${courseName}` : e.title;
+    const color = e.course_id ? (courseColors[e.course_id] ?? DEFAULT_COURSE_COLOR) : DEFAULT_COURSE_COLOR;
     return (
       <button
         type="button"
-        className="w-full truncate rounded bg-[var(--accent-light)] px-1.5 py-0.5 text-left text-[11px] font-medium leading-tight text-[var(--text)] hover:bg-[var(--accent-light)]/80"
+        className="w-full truncate rounded px-1.5 py-0.5 text-left text-[11px] font-medium leading-tight text-[var(--text)] hover:opacity-90 border-l-2"
+        style={{ borderLeftColor: color, backgroundColor: `${color}18` }}
         title={`${formatDisplayDate(e.event_date)}${e.event_time ? " " + e.event_time : ""} — ${fullTitle} (click to delete)`}
-        onClick={() => setSelectedEvent(e)}
+        onClick={(ev) => { ev.stopPropagation(); setSelectedEvent(e); }}
       >
         {e.event_time ? `${e.event_time} ` : ""}
         {label}
@@ -260,20 +266,22 @@ export function CalendarView({
                     isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""
                   }`}
                 >
-                  {onAddEvent ? (
-                    <button
-                      type="button"
-                      onClick={() => openAddForDay(day)}
-                      className={`shrink-0 text-center font-bold hover:underline ${isToday ? "text-[var(--accent)]" : "text-[var(--text)]"}`}
-                      title={t.addEvent}
-                    >
-                      {format(day, "d")} {dayLabels[day.getDay() === 0 ? 6 : day.getDay() - 1]} +
-                    </button>
-                  ) : (
-                    <p className={`shrink-0 text-center font-bold ${isToday ? "text-[var(--accent)]" : "text-[var(--text)]"}`}>
+                  <div className="flex shrink-0 items-center justify-between gap-1">
+                    <p className={`font-bold ${isToday ? "text-[var(--accent)]" : "text-[var(--text)]"}`}>
                       {format(day, "d")} {dayLabels[day.getDay() === 0 ? 6 : day.getDay() - 1]}
                     </p>
-                  )}
+                    {onAddEvent && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); openAddForDay(day); }}
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600"
+                        title={t.addEvent}
+                        aria-label={t.addEvent}
+                      >
+                        <span className="text-lg leading-none">+</span>
+                      </button>
+                    )}
+                  </div>
                   <div className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto max-h-[200px]">
                     {dayEvents.length === 0 ? (
                       <span className="text-[10px] text-[var(--muted)]">{t.noEvents}</span>
@@ -308,37 +316,47 @@ export function CalendarView({
               </div>
             ))}
             {days.map((day) => {
+              const dayKey = format(day, "yyyy-MM-dd");
               const dayEvents = getEventsForDay(day);
               const isCurrentMonth = isSameMonth(day, current);
               const isToday = isSameDay(day, new Date());
               return (
                 <div
                   key={day.toISOString()}
-className={`flex min-h-[100px] flex-col rounded-xl bg-[var(--surface)] p-2 shadow-calendar-cell ${
-                  !isCurrentMonth ? "opacity-60" : ""
-                } ${isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""}`}
+                  className={`flex min-h-[100px] flex-col rounded-xl bg-[var(--surface)] p-2 shadow-calendar-cell ${
+                    !isCurrentMonth ? "opacity-60" : ""
+                  } ${isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""}`}
                 >
-                  {onAddEvent ? (
+                  <div className="flex shrink-0 items-center justify-between gap-0.5">
                     <button
                       type="button"
-                      onClick={() => openAddForDay(day)}
-                      className={`shrink-0 w-fit rounded px-1 font-semibold hover:bg-[var(--border-subtle)] ${
+                      onClick={() => setSelectedDayForDetail(dayKey)}
+                      className={`min-w-0 flex-1 rounded px-1 text-left font-semibold hover:bg-[var(--border-subtle)] ${
                         isToday ? "font-bold text-[var(--accent)]" : "text-[var(--text)]"
                       }`}
-                      title={t.addEvent}
-                    >
-                      {format(day, "d")}+
-                    </button>
-                  ) : (
-                    <span
-                      className={`shrink-0 ${
-                        isToday ? "font-bold text-[var(--accent)]" : "font-semibold text-[var(--text)]"
-                      }`}
+                      title={t.viewDay}
                     >
                       {format(day, "d")}
-                    </span>
-                  )}
-                  <div className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto max-h-[220px]">
+                    </button>
+                    {onAddEvent && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); openAddForDay(day); }}
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600"
+                        title={t.addEvent}
+                        aria-label={t.addEvent}
+                      >
+                        <span className="text-sm leading-none">+</span>
+                      </button>
+                    )}
+                  </div>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedDayForDetail(dayKey)}
+                    onKeyDown={(ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); setSelectedDayForDetail(dayKey); } }}
+                    className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto max-h-[220px] cursor-pointer text-left"
+                  >
                     {dayEvents.length === 0 ? (
                       <span className="text-[10px] text-[var(--muted)]">{t.noEvents}</span>
                     ) : (
@@ -416,6 +434,57 @@ className={`flex min-h-[100px] flex-col rounded-xl bg-[var(--surface)] p-2 shado
           </div>
         );
       })()}
+
+      {/* Day detail modal (month view: click a day to see everything without spill-over) */}
+      {selectedDayForDetail && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setSelectedDayForDetail(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="day-detail-title"
+        >
+          <div
+            className="flex max-h-[85vh] w-full max-w-md flex-col rounded-2xl bg-[var(--surface)] p-6 shadow-soft-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="day-detail-title" className="text-lg font-bold text-[var(--text)]">
+              {formatDisplayDate(selectedDayForDetail)}
+            </h3>
+            <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto">
+              {getEventsForDay(selectedDayForDetail).length === 0 ? (
+                <p className="text-sm text-[var(--muted)]">{t.noEvents}</p>
+              ) : (
+                getEventsForDay(selectedDayForDetail)
+                  .sort((a, b) => (a.event_time || "").localeCompare(b.event_time || ""))
+                  .map((e) => <EventChip key={e.id} e={e} />)
+              )}
+            </div>
+            <div className="mt-4 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedDayForDetail(null)}
+                className="flex-1 rounded-xl bg-[var(--border-subtle)] py-2.5 text-sm font-bold text-[var(--text)] hover:bg-[var(--border)]"
+              >
+                {t.cancel}
+              </button>
+              {onAddEvent && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    openAddForDay(new Date(selectedDayForDetail + "T12:00:00"));
+                    setSelectedDayForDetail(null);
+                  }}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-green-500 py-2.5 text-sm font-bold text-white hover:bg-green-600"
+                >
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-lg leading-none">+</span>
+                  {t.addEvent}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedEvent && (
         <div

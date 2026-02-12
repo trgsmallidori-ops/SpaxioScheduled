@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
+import { COURSE_COLOR_PRESETS, DEFAULT_COURSE_COLOR } from "@/lib/courseColors";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -43,7 +44,23 @@ export function UploadSyllabus({
   } | null>(null);
   const [blocks, setBlocks] = useState<TimeBlock[]>([emptyBlock()]);
   const [savingClassTime, setSavingClassTime] = useState(false);
+  const [courseColorSaving, setCourseColorSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const activeCourseId = needsTermDates?.courseId ?? needsClassTime?.courseId ?? null;
+
+  async function handleCourseColorChange(courseId: string, color: string) {
+    setCourseColorSaving(true);
+    try {
+      await fetch(`/api/courses/${courseId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ color }),
+      });
+    } finally {
+      setCourseColorSaving(false);
+    }
+  }
 
   function updateBlock(i: number, upd: Partial<TimeBlock>) {
     setBlocks((b) => b.map((block, j) => (j === i ? { ...block, ...upd } : block)));
@@ -272,6 +289,25 @@ export function UploadSyllabus({
               {savingTermDates ? "..." : t.save}
             </button>
           </div>
+          {activeCourseId && (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-[var(--text)]">{t.courseColor ?? "Course colour"}:</span>
+              <div className="flex gap-1">
+                {COURSE_COLOR_PRESETS.map((hex) => (
+                  <button
+                    key={hex}
+                    type="button"
+                    disabled={courseColorSaving}
+                    onClick={() => handleCourseColorChange(activeCourseId, hex)}
+                    className="h-6 w-6 rounded-full border-2 border-transparent hover:opacity-90 disabled:opacity-50"
+                    style={{ backgroundColor: hex }}
+                    title={hex}
+                    aria-label={t.courseColor ?? "Course colour"}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -347,6 +383,25 @@ export function UploadSyllabus({
               </button>
             </div>
           </div>
+          {activeCourseId && (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-[var(--text)]">{t.courseColor ?? "Course colour"}:</span>
+              <div className="flex gap-1">
+                {COURSE_COLOR_PRESETS.map((hex) => (
+                  <button
+                    key={hex}
+                    type="button"
+                    disabled={courseColorSaving}
+                    onClick={() => handleCourseColorChange(activeCourseId, hex)}
+                    className="h-6 w-6 rounded-full border-2 border-transparent hover:opacity-90 disabled:opacity-50"
+                    style={{ backgroundColor: hex }}
+                    title={hex}
+                    aria-label={t.courseColor ?? "Course colour"}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </form>

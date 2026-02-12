@@ -10,6 +10,7 @@ import { QuotaCard } from "@/components/QuotaCard";
 import { AddClassTime } from "@/components/AddClassTime";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { FREE_UPLOADS } from "@/lib/stripe";
+import { DEFAULT_COURSE_COLOR } from "@/lib/courseColors";
 import type { CalendarEvent as CalEvent } from "@/types/database";
 import type { UserQuota } from "@/types/database";
 import type { Course } from "@/types/database";
@@ -105,8 +106,10 @@ export default function DashboardPage() {
       : events.filter((e) => e.course_id === courseFilterId);
 
   const courseNames: Record<string, string> = {};
+  const courseColors: Record<string, string> = {};
   courses.forEach((c) => {
     courseNames[c.id] = c.code ? `${c.name} (${c.code})` : c.name;
+    courseColors[c.id] = c.color ?? DEFAULT_COURSE_COLOR;
   });
 
   async function handleDeleteEvent(eventId: string) {
@@ -196,7 +199,7 @@ export default function DashboardPage() {
               />
             )}
           </div>
-          <CalendarView events={filteredEvents} courseNames={courseNames} onUpdate={refetchEvents} onDeleteEvent={handleDeleteEvent} onAddEvent={handleAddEvent} />
+          <CalendarView events={filteredEvents} courseNames={courseNames} courseColors={courseColors} onUpdate={refetchEvents} onDeleteEvent={handleDeleteEvent} onAddEvent={handleAddEvent} />
         </section>
       </div>
       <aside className="order-1 flex w-full flex-col gap-6 shrink-0 lg:order-2 lg:w-[340px]">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/contexts/LocaleContext";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { COURSE_COLOR_PRESETS, DEFAULT_COURSE_COLOR } from "@/lib/courseColors";
 import type { Course } from "@/types/database";
 import type { CalendarEvent } from "@/types/database";
 import { formatDisplayDate } from "@/lib/formatDate";
@@ -16,6 +17,7 @@ export default function CoursesPage() {
   const [selectedId, setSelectedId] = useState<string | "all">("all");
   const [deleteConfirmCourseId, setDeleteConfirmCourseId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [updatingColorCourseId, setUpdatingColorCourseId] = useState<string | null>(null);
 
   function refetch() {
     const supabase = createClient();
@@ -45,6 +47,20 @@ export default function CoursesPage() {
     await supabase.from("courses").delete().eq("id", courseId);
     if (selectedId === courseId) setSelectedId("all");
     refetch();
+  }
+
+  async function handleCourseColorChange(courseId: string, color: string) {
+    setUpdatingColorCourseId(courseId);
+    try {
+      const res = await fetch(`/api/courses/${courseId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ color }),
+      });
+      if (res.ok) refetch();
+    } finally {
+      setUpdatingColorCourseId(null);
+    }
   }
 
   const filteredEvents =
@@ -161,13 +177,36 @@ export default function CoursesPage() {
                         </span>
                       )}
                     </h2>
-                    <button
-                      type="button"
-                      onClick={() => setDeleteConfirmCourseId(course.id)}
-                      className="rounded-xl bg-red-500 px-3 py-2 text-sm font-bold text-white hover:bg-red-600"
-                    >
-                      {t.deleteCourse}
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-semibold text-[var(--muted)]">{t.courseColor ?? "Colour"}:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {COURSE_COLOR_PRESETS.map((hex) => {
+                          const current = course.color ?? DEFAULT_COURSE_COLOR;
+                          const isSelected = current.toLowerCase() === hex.toLowerCase();
+                          return (
+                            <button
+                              key={hex}
+                              type="button"
+                              disabled={updatingColorCourseId === course.id}
+                              onClick={() => handleCourseColorChange(course.id, hex)}
+                              className={`h-7 w-7 rounded-full border-2 transition hover:opacity-90 disabled:opacity-50 ${
+                                isSelected ? "border-[var(--text)] ring-2 ring-offset-2 ring-offset-[var(--surface)] ring-[var(--accent)]" : "border-transparent"
+                              }`}
+                              style={{ backgroundColor: hex }}
+                              title={hex}
+                              aria-label={t.courseColor ?? "Course colour"}
+                            />
+                          );
+                        })}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmCourseId(course.id)}
+                        className="rounded-xl bg-red-500 px-3 py-2 text-sm font-bold text-white hover:bg-red-600"
+                      >
+                        {t.deleteCourse}
+                      </button>
+                    </div>
                   </div>
 
                   {!hasAny && (

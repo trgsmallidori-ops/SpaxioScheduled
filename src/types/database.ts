@@ -18,6 +18,7 @@ export type Course = {
   file_path: string | null;
   term_start_date: string | null;
   term_end_date: string | null;
+  color: string | null;
   created_at: string;
   updated_at: string;
 };

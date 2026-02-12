@@ -11,6 +11,7 @@ export const maxDuration = 60;
  * Reminder job: call once per day (e.g. morning). For each user, sends one email
  * only on the day that is exactly X days + Y weeks before their assignment/test/exam.
  * Example: user chose "3 days before" → they get an email 3 days before each event date.
+ * Only assignment, test, and exam events trigger reminders—not "other" (e.g. regular lecture topics).
  */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -47,6 +48,7 @@ export async function GET(request: NextRequest) {
     const eventDate = addDays(today, totalDaysBefore);
     const targetEventDateStr = format(eventDate, "yyyy-MM-dd");
 
+    // Only remind for tests, assignments, quizzes, exams—not lecture topics (type "other")
     const { data: events } = await admin
       .from("calendar_events")
       .select("id, title, event_type, event_date, course_id")

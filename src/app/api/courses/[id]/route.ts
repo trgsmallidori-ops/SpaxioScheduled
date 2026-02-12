@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { isValidCourseColor } from "@/lib/courseColors";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
@@ -19,7 +20,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid course id" }, { status: 400 });
   }
 
-  let body: { term_start_date?: string | null; term_end_date?: string | null };
+  let body: { term_start_date?: string | null; term_end_date?: string | null; color?: string | null };
   try {
     body = await request.json();
   } catch {
@@ -35,10 +36,22 @@ export async function PATCH(
 
   if (!course) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const updates: { term_start_date?: string | null; term_end_date?: string | null; updated_at: string } = {
+  const updates: {
+    term_start_date?: string | null;
+    term_end_date?: string | null;
+    color?: string | null;
+    updated_at: string;
+  } = {
     updated_at: new Date().toISOString(),
   };
 
+  if (body.color !== undefined) {
+    if (body.color === null || body.color === "") {
+      updates.color = null;
+    } else if (isValidCourseColor(body.color)) {
+      updates.color = body.color;
+    }
+  }
   if (body.term_start_date !== undefined) {
     if (body.term_start_date === null || body.term_start_date === "") {
       updates.term_start_date = null;

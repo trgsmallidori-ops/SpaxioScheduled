@@ -8,6 +8,7 @@ import {
   stripe,
 } from "@/lib/stripe";
 import { isCreatorOrAdmin } from "@/lib/auth";
+import { DEFAULT_COURSE_COLOR } from "@/lib/courseColors";
 import type { ParsedSyllabus } from "@/types/database";
 
 const openai = process.env.OPENAI_API_KEY
@@ -54,18 +55,24 @@ CRITICAL RULES:
    - Project due date, group project deadline, presentation due, lab report due.
    - Any "due", "deadline", "submit by" with a date → type "assignment".
 
-   IN-CLASS CONTENT / WHAT THE TEACHER IS DOING THAT DAY (type "other"):
-   - Week-by-week or day-by-day schedule: "Week 3: Introduction to X", "Monday we will cover Y", "Topics: Z".
-   - "We will discuss", "We will cover", "In class: ", "Lecture topic:", "Activities:", "Guest speaker", "Field trip", "Review session", "Workshop", "Discussion of Ch. 5".
-   - Create ONE calendar event per distinct topic/activity with the date (or inferred date for that week). Title should be descriptive: e.g. "Ch. 3: Introduction to Loops", "Guest speaker: Industry panel", "Review for midterm".
-   - If the syllabus says "Week 5 - Quiz; Topic: Recursion" create TWO events for that week: one "Quiz" (type "test") and one "Topic: Recursion" (type "other"). Use the same date or the first class day of that week for both if only "Week 5" is given.
+   IN-CLASS CONTENT / LECTURE TOPICS (type "other"):
+   - Week-by-week or day-by-day schedule: "Week 3: Introduction to X", "Demand Forecasting", "Product & Service Design". Use type "other" with a descriptive title (e.g. "Ch. 3: Introduction to Loops", "Process Design and Facility Layout"). These are for calendar visibility only; reminders are NOT sent for type "other".
+   - "Guest speaker", "Field trip", "Review session", "Workshop", "Discussion of Ch. 5" → type "other".
+   - NEVER add an event titled "Class" or with type "class". If a day already has an important event (test, quiz, assignment, review, feedback), do NOT add a separate "Class" or generic lecture event for that same date. Only add the important event(s). You may add the lecture topic as type "other" with a descriptive title on the same or adjacent date, but the primary entry for that day must be the test/quiz/assignment/review/feedback—never "Class".
+   - Important events (tests, quizzes, assignments, review, feedback, study break) always take priority: use type "test", "exam", or "assignment". Regular lecture topics (e.g. "Demand Forecasting", "Strategic Capacity Planning") are type "other" only.
+
+   TABLE PARSING (Week / Date / Topic / Readings):
+   - When the syllabus has a table with date ranges (e.g. "Jan 20 - 22" or "Mar 31 - Apr 9") and a Topic column with multiple lines:
+     - Often the FIRST line in the Topic cell corresponds to the FIRST date in the range, the SECOND line to the SECOND date, etc. Create one calendar entry per line, assigning each to the correct date in the range (e.g. "Jan 20 - 22" with two lines → first line → Jan 20, second line → Jan 21, or spread across the three days if there are three lines).
+     - Exception: if the lines are clearly one sentence split across two lines (e.g. "Course Introduction" and "Introduction to Operations Management" as one intro), treat as ONE topic and use the first date of the range (or one event for the range).
+   - Items in blue, bold, or with keywords "Test", "Review", "Feedback", "Study Break", "Quiz", "Due" are important events → use type "test", "exam", or "assignment". Do not duplicate that day with a "Class" event.
+   - Blank "Readings" for a row often means the Topic is an event (test, review) rather than a reading-based lecture—use that as a hint.
 
    DATE HANDLING:
-   - Search the ENTIRE document: "Tentative Schedule", "Course Calendar", "Important Dates", "Weekly Schedule", "Outline", "Syllabus schedule", tables, bullet lists, paragraphs, footnotes.
-   - Convert "Oct 15", "10/15", "October 15", "March 10th", "Week 7", "7th week", "Class 12" to YYYY-MM-DD. For "Week N", use termStartDate: first day of that week (e.g. Week 1 = termStartDate, Week 2 = termStartDate + 7 days, etc.). If termStartDate is null, use a Monday for "Week N" and a reasonable year (2025).
-   - When a table row or line lists multiple items for one date/week (e.g. "Quiz, Ch. 4 intro, Assignment 2 due"), create SEPARATE entries for each with the same date.
-   - Do NOT skip events because they seem minor. Pop quizzes, practice tests, and in-class topics are all valuable for the calendar.
-   - Do NOT include recurring weekly "class" or "lecture" meetings in tentativeSchedule—only specific one-off or dated events.
+   - Search the ENTIRE document: "Tentative Schedule", "Course Calendar", "Important Dates", "Weekly Schedule", tables, bullet lists, paragraphs.
+   - Convert "Oct 15", "10/15", "October 15", "March 10th", "Week 7", "Jan 20 - 22" to YYYY-MM-DD. For a range "Jan 20 - 22", you can assign different topic lines to Jan 20, Jan 21, Jan 22 when the table has multiple lines. For "Week N", use termStartDate: first day of that week (e.g. Week 1 = termStartDate, Week 2 = termStartDate + 7 days).
+   - When one row has both an important event and a lecture topic (e.g. "Review & Test #1" and "Test #1", or "Feedback on Test #1" and "Process Design and Facility Layout"), create separate entries with the correct dates; do not add "Class" for that day.
+   - Do NOT include recurring weekly "class" or "lecture" meetings in tentativeSchedule. Do NOT add any event titled "Class". Reminders are only sent for assignment, test, and exam—never for type "other".
 
 2) classSchedule - different times on different days:
    - If the syllabus says e.g. "Lecture MWF 9:00-9:50" and "Lab Tue 14:00-15:30", return TWO blocks: [ { "days": ["Mon","Wed","Fri"], "start": "09:00", "end": "09:50" }, { "days": ["Tue"], "start": "14:00", "end": "15:30" } ].
@@ -341,6 +348,7 @@ async function handleParseSyllabus(request: NextRequest) {
       file_path: path,
       term_start_date: termStart,
       term_end_date: termEnd,
+      color: DEFAULT_COURSE_COLOR,
     })
     .select("id")
     .single();
@@ -386,6 +394,8 @@ async function handleParseSyllabus(request: NextRequest) {
         "practice_test",
         "mock exam",
         "assessment",
+        "review",
+        "feedback",
       ].some((k) => t === k || t.includes(k))
     )
       return "test";
