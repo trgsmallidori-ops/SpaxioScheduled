@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { addDays, format, endOfMonth, startOfDay, parseISO } from "date-fns";
-import { enUS } from "date-fns/locale";
 import type { ClassScheduleBlock } from "@/types/database";
 
 export async function PATCH(
@@ -102,6 +101,7 @@ export async function PATCH(
   }
 
   if (blocks.length > 0) {
+    const DAY_TOKENS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
     const today = startOfDay(new Date());
     let startDate: Date = today;
     let endDate: Date = endOfMonth(addDays(today, 120));
@@ -128,7 +128,7 @@ export async function PATCH(
       if (!block.days?.length || !block.start || !block.end) continue;
       let d = new Date(startDate);
       while (d <= endDate) {
-        const dayName = format(d, "EEE", { locale: enUS });
+        const dayName = DAY_TOKENS[d.getDay()];
         if (block.days.includes(dayName)) {
           events.push({
             user_id: user.id,

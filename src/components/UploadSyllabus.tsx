@@ -5,6 +5,15 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { COURSE_COLOR_PRESETS, DEFAULT_COURSE_COLOR } from "@/lib/courseColors";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DAY_LABELS: Record<(typeof DAYS)[number], string> = {
+  Mon: "M",
+  Tue: "Tu",
+  Wed: "W",
+  Thu: "Th",
+  Fri: "F",
+  Sat: "Sa",
+  Sun: "Su",
+};
 
 type TimeBlock = { start: string; end: string; days: string[] };
 
@@ -401,7 +410,7 @@ export function UploadSyllabus({
                         block.days.includes(day) ? "bg-[var(--accent)] text-white" : "bg-[var(--surface)] text-[var(--muted)]"
                       }`}
                     >
-                      {day.slice(0, 1)}
+                      {DAY_LABELS[day]}
                     </button>
                   ))}
                 </div>

@@ -7,6 +7,15 @@ import type { Course } from "@/types/database";
 import type { ClassScheduleBlock } from "@/types/database";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DAY_LABELS: Record<(typeof DAYS)[number], string> = {
+  Mon: "M",
+  Tue: "Tu",
+  Wed: "W",
+  Thu: "Th",
+  Fri: "F",
+  Sat: "Sa",
+  Sun: "Su",
+};
 
 function courseNeedsClassTime(c: Course): boolean {
   if (Array.isArray(c.class_schedule) && c.class_schedule.length > 0) return false;
@@ -174,7 +183,7 @@ export function AddClassTime({ onSave }: { onSave: () => void }) {
                             block.days.includes(day) ? "bg-[var(--accent)] text-white" : "bg-[var(--surface)] text-[var(--muted)]"
                           }`}
                         >
-                          {day.slice(0, 1)}
+                          {DAY_LABELS[day]}
                         </button>
                       ))}
                     </div>
