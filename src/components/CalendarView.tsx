@@ -212,8 +212,8 @@ export function CalendarView({
   }
 
   return (
-    <div className="p-3">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+    <div className="p-2 sm:p-3 min-w-0 overflow-x-auto">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 min-w-0">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -237,16 +237,16 @@ export function CalendarView({
             →
           </button>
         </div>
-        <h3 className="min-w-0 flex-1 text-center text-lg font-bold text-[var(--text)]">
+        <h3 className="min-w-0 flex-1 text-center text-sm sm:text-lg font-bold text-[var(--text)] truncate">
           {title}
         </h3>
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 shrink-0">
           {viewButtons.map(({ mode, label }) => (
             <button
               key={mode}
               type="button"
               onClick={() => setViewMode(mode)}
-              className={`rounded-xl px-3 py-2 text-sm font-bold ${
+              className={`rounded-lg sm:rounded-xl px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-bold ${
                 viewMode === mode
                   ? "bg-[var(--accent)] text-white"
                   : "bg-[var(--border-subtle)] text-[var(--text)] hover:bg-[var(--border)]"
@@ -299,19 +299,20 @@ export function CalendarView({
         const weekEnd = endOfWeek(current, { weekStartsOn: 1 });
         const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
         return (
-          <div className="grid grid-cols-7 gap-2 text-sm">
+          <div className="overflow-x-auto -mx-2 sm:mx-0">
+            <div className="grid grid-cols-7 gap-1 sm:gap-2 text-xs sm:text-sm min-w-[320px]">
             {days.map((day) => {
               const dayEvents = getEventsForDay(day);
               const isToday = isSameDay(day, new Date());
               return (
                 <div
                   key={day.toISOString()}
-                  className={`flex min-h-[140px] flex-col rounded-xl bg-[var(--surface)] p-2 shadow-calendar-cell ${
+                  className={`flex min-h-[100px] sm:min-h-[140px] flex-col rounded-lg sm:rounded-xl bg-[var(--surface)] p-1 sm:p-2 shadow-calendar-cell ${
                     isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""
                   }`}
                 >
-                  <div className="flex shrink-0 items-center justify-between gap-1">
-                    <p className={`font-bold ${isToday ? "text-[var(--accent)]" : "text-[var(--text)]"}`}>
+                  <div className="flex shrink-0 items-center justify-between gap-0.5">
+                    <p className={`font-bold text-xs sm:text-sm truncate min-w-0 ${isToday ? "text-[var(--accent)]" : "text-[var(--text)]"}`}>
                       {format(day, "d")} {dayLabels[day.getDay() === 0 ? 6 : day.getDay() - 1]}
                     </p>
                     {onAddEvent && (
@@ -326,7 +327,7 @@ export function CalendarView({
                       </button>
                     )}
                   </div>
-                  <div className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto max-h-[200px]">
+                  <div className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto max-h-[120px] sm:max-h-[200px]">
                     {dayEvents.length === 0 ? (
                       <span className="text-[10px] text-[var(--muted)]">{t.noEvents}</span>
                     ) : (
@@ -336,6 +337,7 @@ export function CalendarView({
                 </div>
               );
             })}
+            </div>
           </div>
         );
       })()}
@@ -353,9 +355,9 @@ export function CalendarView({
           d = addDays(d, 1);
         }
         return (
-          <div className="grid grid-cols-7 gap-1 text-sm">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-xs sm:text-sm min-w-0">
             {dayLabels.map((label) => (
-              <div key={label} className="py-2 text-center font-bold text-[var(--muted)]">
+              <div key={label} className="py-1 sm:py-2 text-center font-bold text-[var(--muted)] truncate">
                 {label}
               </div>
             ))}
@@ -367,7 +369,7 @@ export function CalendarView({
               return (
                 <div
                   key={day.toISOString()}
-                  className={`flex min-h-[130px] flex-col rounded-xl bg-[var(--surface)] p-2 shadow-calendar-cell ${
+                  className={`flex min-h-[80px] sm:min-h-[130px] flex-col rounded-lg sm:rounded-xl bg-[var(--surface)] p-1 sm:p-2 shadow-calendar-cell ${
                     !isCurrentMonth ? "opacity-60" : ""
                   } ${isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""}`}
                 >
@@ -399,7 +401,7 @@ export function CalendarView({
                     tabIndex={0}
                     onClick={() => setSelectedDayForDetail(dayKey)}
                     onKeyDown={(ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); setSelectedDayForDetail(dayKey); } }}
-                    className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto max-h-[280px] cursor-pointer text-left"
+                    className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto max-h-[120px] sm:max-h-[280px] cursor-pointer text-left"
                   >
                     {dayEvents.length === 0 ? (
                       <span className="text-[10px] text-[var(--muted)]">{t.noEvents}</span>

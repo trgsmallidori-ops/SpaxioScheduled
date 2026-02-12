@@ -158,7 +158,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex w-full flex-col gap-6 bg-[var(--bg)] px-6 py-6 lg:flex-row">
+    <div className="flex w-full max-w-full flex-col gap-4 sm:gap-6 bg-[var(--bg)] px-3 py-4 sm:px-6 sm:py-6 lg:flex-row min-w-0">
       <div className="min-w-0 flex-1 order-2 lg:order-1">
         {success && (
           <div className="mb-4 rounded-2xl bg-[var(--green-light)] px-5 py-3 text-base font-semibold text-[var(--text)] shadow-soft">
@@ -176,12 +176,12 @@ export default function DashboardPage() {
             <p className="mt-1 text-sm font-medium text-[var(--muted)]">{t.outOfUploadsMessage}</p>
           </div>
         )}
-        <section className="rounded-2xl bg-[var(--surface)] shadow-soft">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--divider)] px-4 py-2">
-            <h2 className="text-lg font-bold text-[var(--text)]">
+        <section className="rounded-2xl bg-[var(--surface)] shadow-soft min-w-0 overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--divider)] px-3 py-2 sm:px-4">
+            <h2 className="text-base sm:text-lg font-bold text-[var(--text)] truncate min-w-0">
               {t.calendar}
             </h2>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 min-w-0">
               <label className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-[var(--muted)]">{t.filterByCourse}</span>
                 <select
@@ -209,7 +209,7 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
-          <div className="border-b border-[var(--divider)] px-4 py-2">
+          <div className="border-b border-[var(--divider)] px-3 py-2 sm:px-4">
             {userId && (
               <ReminderSettings
                 userId={userId}
@@ -220,8 +220,8 @@ export default function DashboardPage() {
           <CalendarView events={filteredEvents} courseNames={courseNames} courseColors={courseColors} onUpdate={refetchEvents} onDeleteEvent={handleDeleteEvent} onAddEvent={handleAddEvent} onUpdateEvent={handleUpdateEvent} />
         </section>
       </div>
-      <aside className="order-1 flex w-full flex-col gap-6 shrink-0 lg:order-2 lg:w-[340px]">
-        <section className="rounded-2xl bg-[var(--surface)] p-6 shadow-soft">
+      <aside className="order-1 flex w-full flex-col gap-4 sm:gap-6 shrink-0 lg:order-2 lg:w-[340px] min-w-0">
+        <section className="rounded-2xl bg-[var(--surface)] p-4 sm:p-6 shadow-soft min-w-0">
           <h2 className="text-xl font-bold text-[var(--text)]">
             {t.uploadSyllabus}
           </h2>

@@ -20,11 +20,11 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="w-full min-h-[calc(100vh-4rem)] bg-[var(--bg)]">
-      <section className="w-full border-b border-[var(--border)] bg-[var(--surface)] px-6 py-16 md:py-20">
-        <div className="mx-auto max-w-[1600px] flex flex-col md:flex-row md:items-center md:justify-between gap-10">
+    <div className="w-full max-w-full min-h-[calc(100vh-4rem)] bg-[var(--bg)] overflow-x-hidden">
+      <section className="w-full border-b border-[var(--border)] bg-[var(--surface)] px-4 py-10 sm:px-6 sm:py-16 md:py-20">
+        <div className="mx-auto max-w-[1600px] flex flex-col md:flex-row md:items-center md:justify-between gap-8 md:gap-10">
           <div className="flex-1 min-w-0">
-          <h1 className="text-4xl font-extrabold tracking-tight text-[var(--text)] md:text-5xl">
+          <h1 className="text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-4xl md:text-5xl">
             {t.siteName}
           </h1>
           <p className="mt-4 max-w-xl text-lg text-[var(--text-secondary)]">
@@ -86,9 +86,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="w-full bg-[var(--bg)] px-6 py-14">
+      <section className="w-full bg-[var(--bg)] px-4 py-10 sm:px-6 sm:py-14">
         <div className="mx-auto max-w-[1600px]">
-          <h2 className="text-2xl font-bold text-[var(--text)]">
+          <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
             {t.features}
           </h2>
           <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -112,9 +112,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="w-full border-t border-[var(--divider)] bg-[var(--surface)] px-6 py-14" aria-labelledby="seo-heading">
+      <section className="w-full border-t border-[var(--divider)] bg-[var(--surface)] px-4 py-10 sm:px-6 sm:py-14" aria-labelledby="seo-heading">
         <div className="mx-auto max-w-[1600px]">
-          <h2 id="seo-heading" className="text-2xl font-bold text-[var(--text)]">
+          <h2 id="seo-heading" className="text-xl sm:text-2xl font-bold text-[var(--text)]">
             The smart course outline calendar and school calendar for students
           </h2>
           <div className="mt-6 grid gap-6 text-[var(--text-secondary)] sm:grid-cols-2">

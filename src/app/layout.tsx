@@ -77,7 +77,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`min-h-screen w-full ${nunito.className} antialiased text-[var(--text)] bg-[var(--bg)]`}>
+      <body className={`min-h-screen w-full overflow-x-hidden ${nunito.className} antialiased text-[var(--text)] bg-[var(--bg)]`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -86,7 +86,7 @@ export default function RootLayout({
           <ConsentProvider>
             <LocaleProvider>
               <Header />
-              <main className="w-full min-h-[calc(100vh-4rem)] bg-[var(--bg)] flex flex-col">
+              <main className="w-full max-w-full min-h-[calc(100vh-4rem)] bg-[var(--bg)] flex flex-col overflow-x-hidden">
                 {children}
               </main>
               <Footer />
