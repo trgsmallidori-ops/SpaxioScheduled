@@ -22,6 +22,7 @@ export function ReminderSettings({ userId, userEmail, onSaved }: ReminderSetting
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [email, setEmail] = useState(userEmail);
   const [mode, setMode] = useState<ReminderMode>("days");
   const [days, setDays] = useState(3);
@@ -41,9 +42,14 @@ export function ReminderSettings({ userId, userEmail, onSaved }: ReminderSetting
       .from("notification_preferences")
       .select("*")
       .eq("user_id", userId)
-      .single()
-      .then(({ data }) => {
+      .maybeSingle()
+      .then(({ data, error }) => {
         if (cancelled) return;
+        if (error) {
+          console.error("[ReminderSettings] load error", error);
+          setLoading(false);
+          return;
+        }
         if (data) {
           const p = data as NotificationPreferences;
           setPrefs(p);
@@ -63,8 +69,7 @@ export function ReminderSettings({ userId, userEmail, onSaved }: ReminderSetting
           }
         }
         setLoading(false);
-      })
-      .then(undefined, () => { if (!cancelled) setLoading(false); });
+      });
     return () => { cancelled = true; };
   }, [userId, userEmail]);
 
@@ -85,17 +90,38 @@ export function ReminderSettings({ userId, userEmail, onSaved }: ReminderSetting
     }
     setSaving(true);
     setSaved(false);
-    await supabase.from("notification_preferences").upsert({
+    setSaveError(null);
+    const { error } = await supabase
+      .from("notification_preferences")
+      .upsert(
+        {
+          user_id: userId,
+          email: (email.trim() || userEmail).slice(0, 500),
+          remind_days_before: remindDays,
+          remind_weeks_before: remindWeeks,
+          frequency: "daily",
+          locale: locale === "fr" ? "fr" : "en",
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" }
+      );
+    setSaving(false);
+    if (error) {
+      console.error("[ReminderSettings] save error", error);
+      setSaveError(error.message || "Failed to save. Please try again.");
+      return;
+    }
+    setSaved(true);
+    setPrefs({
       user_id: userId,
       email: email.trim() || userEmail,
       remind_days_before: remindDays,
       remind_weeks_before: remindWeeks,
       frequency: "daily",
       locale: locale === "fr" ? "fr" : "en",
+      created_at: prefs?.created_at ?? new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
-    setSaving(false);
-    setSaved(true);
     onSaved?.();
     setTimeout(() => setSaved(false), 3000);
   }
@@ -202,6 +228,11 @@ export function ReminderSettings({ userId, userEmail, onSaved }: ReminderSetting
             )}
           </div>
         </div>
+        {saveError && (
+          <p className="text-sm font-semibold text-red-600" role="alert">
+            {saveError}
+          </p>
+        )}
         <div className="flex items-center gap-2">
           <button
             type="submit"
