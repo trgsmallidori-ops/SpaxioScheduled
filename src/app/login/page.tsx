@@ -1,18 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const { t } = useLocale();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    if (searchParams.get("error") === "confirm") {
+      setError(t.confirmLinkInvalid);
+    }
+  }, [searchParams, t.confirmLinkInvalid]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -59,7 +67,9 @@ export default function LoginPage() {
             />
           </div>
           {error && (
-            <p className="text-sm font-semibold text-red-600">{error}</p>
+            <p className="rounded-xl bg-[var(--orange-light)] p-3 text-sm font-semibold text-[var(--text)]">
+              {error}
+            </p>
           )}
           <button
             type="submit"

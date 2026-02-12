@@ -32,17 +32,25 @@ export default function SignupPage() {
     }
     setLoading(true);
     const supabase = createClient();
+    // Use canonical app URL so verification email link goes to production, not localhost
+    const baseUrl =
+      typeof window !== "undefined"
+        ? (process.env.NEXT_PUBLIC_APP_URL || window.location.origin)
+        : process.env.NEXT_PUBLIC_APP_URL || "";
     const { error: err } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: `${baseUrl.replace(/\/$/, "")}/auth/callback?next=/dashboard`,
+      },
     });
     setLoading(false);
     if (err) {
       setError(err.message);
       return;
     }
-    router.push("/dashboard");
+    router.push(`/signup/confirm-email?email=${encodeURIComponent(email)}`);
     router.refresh();
   }
 
