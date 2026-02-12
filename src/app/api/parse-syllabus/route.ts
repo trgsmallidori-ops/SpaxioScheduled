@@ -15,7 +15,7 @@ const openai = process.env.OPENAI_API_KEY
   : null;
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
-const EXTRACT_PROMPT = `You are parsing a course syllabus. Extract the following and return ONLY valid JSON with no markdown or extra text.
+const EXTRACT_PROMPT = `You are parsing a course syllabus with EXTREME ACCURACY. Your goal is to populate a student's calendar with every important dated event. Extract the following and return ONLY valid JSON with no markdown or extra text.
 
 Return this exact structure:
 {
@@ -39,19 +39,40 @@ CRITICAL RULES:
    - Use the SAME year as the tentative schedule dates. If no year is given anywhere, use the current academic year (e.g. 2025 for spring).
    - Return null only when you truly cannot find any indication of term start or end in the document.
 
-1) tentativeSchedule - BE THOROUGH finding ALL test and exam dates:
-   - Search the ENTIRE document for: "midterm", "mid-term", "exam", "final", "test", "quiz", "assessment", "due date", "deadline", "assignment due".
-   - Look in: "Tentative Schedule", "Important Dates", "Exam Schedule", "Course Calendar", tables, bullet lists, paragraphs.
-   - Dates may appear as "Oct 15", "10/15", "October 15", "Week 7", "March 10th". Convert to YYYY-MM-DD (use 2025 for year if not given).
-   - Include EVERY assignment due date, test date, quiz date, midterm, final exam you find. Prefer type "exam" for finals/midterms, "test" for tests/quizzes, "assignment" for assignments.
-   - Do NOT include type "class" in tentativeSchedule. Do NOT add recurring weekly class meetings here. Only include specific dated events (assignments, tests, exams).
+1) tentativeSchedule - BE EXTREMELY THOROUGH. Extract EVERYTHING that has a date or can be assigned a date. Include:
+
+   ASSESSMENTS (use type "test" or "exam" or "assignment" as below):
+   - Quizzes, pop quizzes, surprise quizzes → type "test". Title e.g. "Quiz on Ch. 2", "Pop quiz", "Week 4 Quiz".
+   - Practice tests, mock exams, review tests → type "test". Title e.g. "Practice midterm", "Mock exam".
+   - Tests, in-class tests, unit tests → type "test".
+   - Midterms, mid-term exams, half-term exam → type "exam".
+   - Final exam, final, comprehensive exam → type "exam".
+   - Any "assessment", "evaluation" with a date → choose test or exam by scope.
+
+   ASSIGNMENTS (type "assignment"):
+   - Assignment due dates, homework due, problem set due, essay due, paper due.
+   - Project due date, group project deadline, presentation due, lab report due.
+   - Any "due", "deadline", "submit by" with a date → type "assignment".
+
+   IN-CLASS CONTENT / WHAT THE TEACHER IS DOING THAT DAY (type "other"):
+   - Week-by-week or day-by-day schedule: "Week 3: Introduction to X", "Monday we will cover Y", "Topics: Z".
+   - "We will discuss", "We will cover", "In class: ", "Lecture topic:", "Activities:", "Guest speaker", "Field trip", "Review session", "Workshop", "Discussion of Ch. 5".
+   - Create ONE calendar event per distinct topic/activity with the date (or inferred date for that week). Title should be descriptive: e.g. "Ch. 3: Introduction to Loops", "Guest speaker: Industry panel", "Review for midterm".
+   - If the syllabus says "Week 5 - Quiz; Topic: Recursion" create TWO events for that week: one "Quiz" (type "test") and one "Topic: Recursion" (type "other"). Use the same date or the first class day of that week for both if only "Week 5" is given.
+
+   DATE HANDLING:
+   - Search the ENTIRE document: "Tentative Schedule", "Course Calendar", "Important Dates", "Weekly Schedule", "Outline", "Syllabus schedule", tables, bullet lists, paragraphs, footnotes.
+   - Convert "Oct 15", "10/15", "October 15", "March 10th", "Week 7", "7th week", "Class 12" to YYYY-MM-DD. For "Week N", use termStartDate: first day of that week (e.g. Week 1 = termStartDate, Week 2 = termStartDate + 7 days, etc.). If termStartDate is null, use a Monday for "Week N" and a reasonable year (2025).
+   - When a table row or line lists multiple items for one date/week (e.g. "Quiz, Ch. 4 intro, Assignment 2 due"), create SEPARATE entries for each with the same date.
+   - Do NOT skip events because they seem minor. Pop quizzes, practice tests, and in-class topics are all valuable for the calendar.
+   - Do NOT include recurring weekly "class" or "lecture" meetings in tentativeSchedule—only specific one-off or dated events.
 
 2) classSchedule - different times on different days:
    - If the syllabus says e.g. "Lecture MWF 9:00-9:50" and "Lab Tue 14:00-15:30", return TWO blocks: [ { "days": ["Mon","Wed","Fri"], "start": "09:00", "end": "09:50" }, { "days": ["Tue"], "start": "14:00", "end": "15:30" } ].
    - Use exactly: "Mon","Tue","Wed","Thu","Fri","Sat","Sun". Map T/Th, MWF, etc. to these.
    - If there is only one meeting pattern, return one block. If no schedule found, return [].
 
-3) assignmentWeights: keys like "Assignments", "Midterm", "Final", "Participation". Values 0-100.`;
+3) assignmentWeights: keys like "Assignments", "Midterm", "Final", "Participation", "Quizzes". Values 0-100.`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -348,17 +369,39 @@ async function handleParseSyllabus(request: NextRequest) {
     weight_percent: number | null;
   }[] = [];
 
+  const rawTypeToEventType = (
+    raw: string | null | undefined
+  ): "assignment" | "test" | "exam" | "other" => {
+    const t = (raw && String(raw).trim().toLowerCase()) || "";
+    if (["exam", "midterm", "mid-term", "final", "finals"].some((k) => t === k || t.includes(k)))
+      return "exam";
+    if (
+      [
+        "test",
+        "quiz",
+        "quizzes",
+        "pop quiz",
+        "pop_quiz",
+        "practice test",
+        "practice_test",
+        "mock exam",
+        "assessment",
+      ].some((k) => t === k || t.includes(k))
+    )
+      return "test";
+    if (
+      ["assignment", "assignments", "homework", "project", "presentation", "lab report", "due", "deadline"].some(
+        (k) => t === k || t.includes(k)
+      )
+    )
+      return "assignment";
+    return "other";
+  };
+
   for (const item of parsed.tentativeSchedule || []) {
     const date = item?.date && String(item.date).trim();
     if (!date || !dateOnly.test(date)) continue;
-    const type =
-      item.type === "exam"
-        ? "exam"
-        : item.type === "test"
-          ? "test"
-          : item.type === "assignment"
-            ? "assignment"
-            : "other";
+    const type = rawTypeToEventType(item.type);
     events.push({
       user_id: user.id,
       course_id: course.id,

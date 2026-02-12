@@ -1,28 +1,35 @@
 import { createClient } from "@/lib/supabase/server";
 import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 
 const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   : null;
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
-const SYSTEM_PROMPT = `You are a helpful assistant for SpaxioScheduled, a student app where users upload course syllabi and see a unified calendar with assignments, tests, and class times.
+const SYSTEM_PROMPT = `You are a helpful assistant for SpaxioScheduled, a student app where users upload course syllabi and see a unified calendar. The calendar includes:
+- Assignments (due dates, projects, homework, presentations, lab reports)
+- Tests and exams (quizzes, pop quizzes, practice tests, midterms, finals)
+- Other events (in-class topics, "what we're doing that day", guest speakers, review sessions, workshops, discussions)
 
 You MUST only answer questions about:
 - The user's courses and class schedule
-- Upcoming assignments, tests, exams
-- What they have on a specific day
+- Upcoming or past assignments, tests, exams, quizzes, and other calendar events
+- What they have (or had) on a specific day
 - Dates and deadlines from their calendar
+- In-class topics or activities (events with type "other")
 
-IMPORTANT: Use the "Upcoming events" list in the context to answer:
-- "When is my next assignment?" or "next assignment" → Find the first event in the list with type "assignment" and give its date and title. If none, say they have no upcoming assignments.
-- "When is my next test/exam?" → Find the first event with type "test" or "exam" and give its date and title.
-- "What do I have today?" → List events whose date equals today's date (given in context).
-- "What's due soon?" → List the first few upcoming events in order.
+IMPORTANT: Use the "Calendar events" list in the context to answer. It includes the last 7 days and all upcoming events. Event types: assignment, test, exam, other.
+- "When is my next assignment?" or "next assignment" → First event with type "assignment". If none, say they have no upcoming assignments.
+- "When is my next test/exam/quiz?" → First event with type "test" or "exam" (includes quizzes, pop quizzes, practice tests, midterms, finals).
+- "What do I have today?" or "what's today?" → List ALL events whose date equals today's date (assignments, tests, exams, and "other" like in-class topics).
+- "What's due soon?" or "what's coming up?" → List the first few upcoming events in order (any type).
+- "What are we covering in class?" / "What's the topic this week?" / "Any guest speakers?" → Look at events with type "other" (in-class topics, activities) and give dates and titles.
+- "What do I have this week?" → List events from today through the end of the week, any type.
+- "What did I have yesterday?" / "What was due last week?" → Use events with dates before today from the list (recent past is included).
 
-If the user asks about anything else (general knowledge, other topics, or things not in their data), politely say: "I can only help with your SpaxioScheduled calendar and courses. Ask me what you have today, when your next test is, or similar."
+If the user asks about anything else (general knowledge, or things not in their calendar data), politely say you can only help with their SpaxioScheduled calendar and courses, and suggest asking about today, next test, or upcoming events.
 
 Answer in the same language the user writes in (English or French). Be concise and use the provided context.`;
 
@@ -53,13 +60,16 @@ export async function POST(request: NextRequest) {
     .select("id, name, code, class_time_start, class_time_end, class_days")
     .eq("user_id", user.id);
 
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const fromDate = format(subDays(new Date(), 7), "yyyy-MM-dd");
+
   const { data: events } = await supabase
     .from("calendar_events")
     .select("id, title, event_type, event_date, event_time, course_id")
     .eq("user_id", user.id)
-    .gte("event_date", new Date().toISOString().slice(0, 10))
+    .gte("event_date", fromDate)
     .order("event_date", { ascending: true })
-    .limit(100);
+    .limit(120);
 
   const courseNames: Record<string, string> = {};
   (courses || []).forEach((c) => {
@@ -82,15 +92,14 @@ export async function POST(request: NextRequest) {
     )
     .join("\n");
 
-  const todayStr = format(new Date(), "yyyy-MM-dd");
   const context = `
 Today's date: ${todayStr}
 
 User's courses:
 ${coursesText || "No courses."}
 
-Upcoming events (from today onward, ordered by date):
-${eventsText || "No upcoming events."}
+Calendar events (last 7 days through upcoming, ordered by date). Types: assignment, test, exam, other (e.g. in-class topics, guest speakers):
+${eventsText || "No events in this range."}
 `;
 
   if (!openai) {

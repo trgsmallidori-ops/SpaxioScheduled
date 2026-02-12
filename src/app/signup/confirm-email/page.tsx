@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
-export default function ConfirmEmailPage() {
+function ConfirmEmailContent() {
   const { t } = useLocale();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? "";
@@ -96,5 +96,25 @@ export default function ConfirmEmailPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+function ConfirmEmailFallback() {
+  return (
+    <div className="flex min-h-[calc(100vh-4rem)] w-full items-center justify-center bg-[var(--bg)] px-4 py-12">
+      <div className="w-full max-w-md rounded-2xl bg-[var(--surface)] p-8 shadow-soft-lg animate-pulse">
+        <div className="h-8 w-48 rounded bg-[var(--border-subtle)]" />
+        <div className="mt-4 h-4 w-full rounded bg-[var(--border-subtle)]" />
+        <div className="mt-2 h-4 w-3/4 rounded bg-[var(--border-subtle)]" />
+      </div>
+    </div>
+  );
+}
+
+export default function ConfirmEmailPage() {
+  return (
+    <Suspense fallback={<ConfirmEmailFallback />}>
+      <ConfirmEmailContent />
+    </Suspense>
   );
 }

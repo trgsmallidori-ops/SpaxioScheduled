@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
+function LoginForm() {
   const { t } = useLocale();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -87,5 +87,31 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+function LoginFallback() {
+  return (
+    <div className="flex min-h-[calc(100vh-4rem)] w-full items-center justify-center bg-[var(--bg)] px-4 py-12">
+      <div className="w-full max-w-md rounded-2xl bg-[var(--surface)] p-8 shadow-soft-lg animate-pulse">
+        <div className="h-8 w-32 rounded bg-[var(--border-subtle)]" />
+        <div className="mt-6 space-y-5">
+          <div className="h-4 w-20 rounded bg-[var(--border-subtle)]" />
+          <div className="h-12 rounded-xl bg-[var(--border-subtle)]" />
+          <div className="h-4 w-24 rounded bg-[var(--border-subtle)]" />
+          <div className="h-12 rounded-xl bg-[var(--border-subtle)]" />
+          <div className="h-12 rounded-xl bg-[var(--border-subtle)]" />
+          <div className="h-12 rounded-xl bg-[var(--border-subtle)]" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginForm />
+    </Suspense>
   );
 }
