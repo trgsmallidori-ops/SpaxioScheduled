@@ -97,13 +97,16 @@ export function Header() {
       {user ? (
         <>
           {!isCreator && !isAdmin && quota && (quota.totalLeft <= 0 || !quota.hasUpgraded) && (
-            <Link
-              href="/dashboard"
-              onClick={mobile ? closeMenu : undefined}
-              className="rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white no-underline transition hover:bg-[var(--accent-hover)] block"
-            >
-              {t.upgrade}
-            </Link>
+            <div className="flex flex-col items-center">
+              <Link
+                href="/dashboard"
+                onClick={mobile ? closeMenu : undefined}
+                className="rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white no-underline transition hover:bg-[var(--accent-hover)] block"
+              >
+                {t.upgrade}
+              </Link>
+              <span className="text-[10px] text-[var(--muted)] mt-0.5 leading-tight">{t.upgradeSecureNote}</span>
+            </div>
           )}
           {navLink("/dashboard", t.dashboard, pathname === "/dashboard", false, mobile)}
           {navLink("/dashboard/courses", t.byCourse, pathname === "/dashboard/courses", false, mobile)}
@@ -223,13 +226,16 @@ export function Header() {
             {user ? (
               <>
                 {!isCreator && !isAdmin && quota && (quota.totalLeft <= 0 || !quota.hasUpgraded) && (
-                  <Link
-                    href="/dashboard"
-                    onClick={closeMenu}
-                    className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-white no-underline transition hover:bg-[var(--accent-hover)] block text-center"
-                  >
-                    {t.upgrade}
-                  </Link>
+                  <div className="flex flex-col items-center">
+                    <Link
+                      href="/dashboard"
+                      onClick={closeMenu}
+                      className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-white no-underline transition hover:bg-[var(--accent-hover)] block text-center"
+                    >
+                      {t.upgrade}
+                    </Link>
+                    <span className="text-[10px] text-[var(--muted)] mt-0.5 leading-tight">{t.upgradeSecureNote}</span>
+                  </div>
                 )}
                 {navLink("/dashboard", t.dashboard, pathname === "/dashboard", false, true)}
                 {navLink("/dashboard/courses", t.byCourse, pathname === "/dashboard/courses", false, true)}

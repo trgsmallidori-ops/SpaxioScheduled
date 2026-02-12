@@ -95,6 +95,43 @@ export function CalendarView({
     return events.filter((e) => e.event_date === key);
   };
 
+  /** Group a day's events by course so same-class items are stacked together. */
+  function getEventsForDayGroupedByCourse(day: Date | string): { courseId: string | null; courseName: string; events: CalendarEvent[] }[] {
+    const list = getEventsForDay(day);
+    const byCourse = new Map<string | null, CalendarEvent[]>();
+    for (const e of list) {
+      const id = e.course_id ?? null;
+      if (!byCourse.has(id)) byCourse.set(id, []);
+      byCourse.get(id)!.push(e);
+    }
+    const result: { courseId: string | null; courseName: string; events: CalendarEvent[] }[] = [];
+    for (const [cid, evs] of byCourse) {
+      evs.sort((a, b) => (a.event_time || "").localeCompare(b.event_time || ""));
+      result.push({
+        courseId: cid,
+        courseName: cid ? (courseNames[cid] ?? "Course") : "Other",
+        events: evs,
+      });
+    }
+    result.sort((a, b) => {
+      const tA = a.events[0]?.event_time ?? "";
+      const tB = b.events[0]?.event_time ?? "";
+      return tA.localeCompare(tB);
+    });
+    return result;
+  }
+
+  /** Order day events by course then time, so same-class events are adjacent in lists. */
+  function getEventsForDaySortedByCourse(day: Date | string): CalendarEvent[] {
+    const list = getEventsForDay(day);
+    return list.sort((a, b) => {
+      const cA = a.course_id ?? "";
+      const cB = b.course_id ?? "";
+      if (cA !== cB) return cA.localeCompare(cB);
+      return (a.event_time || "").localeCompare(b.event_time || "");
+    });
+  }
+
   const goPrev = () => {
     if (viewMode === "day") setCurrent((d) => subDays(d, 1));
     else if (viewMode === "week") setCurrent((d) => subWeeks(d, 1));
@@ -192,7 +229,9 @@ export function CalendarView({
     return e.title;
   }
 
-  function EventChip({ e }: { e: CalendarEvent }) {
+  const MAX_EVENTS_IN_CELL = 3;
+
+  function EventChip({ e, compact }: { e: CalendarEvent; compact?: boolean }) {
     const label = eventLabel(e);
     const courseName = e.course_id ? courseNames[e.course_id] : null;
     const fullTitle = courseName ? `${e.title} — ${courseName}` : e.title;
@@ -200,7 +239,11 @@ export function CalendarView({
     return (
       <button
         type="button"
-        className="w-full truncate rounded px-1.5 py-0.5 text-left text-[11px] font-medium leading-tight text-[var(--text)] hover:opacity-90 border-l-2"
+        className={`w-full truncate rounded text-left font-medium text-[var(--text)] hover:opacity-90 border-l-2 ${
+          compact
+            ? "px-2 py-1 text-[11px] leading-snug"
+            : "px-2.5 py-1.5 text-xs sm:text-[13px] leading-snug"
+        }`}
         style={{ borderLeftColor: color, backgroundColor: `${color}18` }}
         title={`${formatDisplayDate(e.event_date)}${e.event_time ? " " + e.event_time : ""} — ${fullTitle} (click to delete)`}
         onClick={(ev) => { ev.stopPropagation(); setSelectedEvent(e); }}
@@ -260,8 +303,8 @@ export function CalendarView({
 
       {/* Day view */}
       {viewMode === "day" && (() => {
-        const dayEvents = getEventsForDay(current);
-        dayEvents.sort((a, b) => (a.event_time || "").localeCompare(b.event_time || ""));
+        const groups = getEventsForDayGroupedByCourse(current);
+        const totalEvents = groups.reduce((n, g) => n + g.events.length, 0);
         return (
           <div className="rounded-xl bg-[var(--surface)] p-4 shadow-calendar-cell">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -278,16 +321,25 @@ export function CalendarView({
                 </button>
               )}
             </div>
-            {dayEvents.length === 0 ? (
+            {totalEvents === 0 ? (
               <p className="text-sm text-[var(--muted)]">{t.noEvents}</p>
             ) : (
-              <ul className="space-y-2">
-                {dayEvents.map((e) => (
-                  <li key={e.id}>
-                    <EventChip e={e} />
-                  </li>
+              <div className="space-y-4">
+                {groups.map((group) => (
+                  <div key={group.courseId ?? "other"} className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg)]/50 p-3">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--muted)] truncate">
+                      {group.courseName}
+                    </p>
+                    <ul className="space-y-1.5">
+                      {group.events.map((e) => (
+                        <li key={e.id}>
+                          <EventChip e={e} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
         );
@@ -302,16 +354,16 @@ export function CalendarView({
           <div className="overflow-x-auto -mx-2 sm:mx-0">
             <div className="grid grid-cols-7 gap-1 sm:gap-2 text-xs sm:text-sm min-w-[320px]">
             {days.map((day) => {
-              const dayEvents = getEventsForDay(day);
+              const dayEvents = getEventsForDaySortedByCourse(day);
               const isToday = isSameDay(day, new Date());
               return (
                 <div
                   key={day.toISOString()}
-                  className={`flex min-h-[100px] sm:min-h-[140px] flex-col rounded-lg sm:rounded-xl bg-[var(--surface)] p-1 sm:p-2 shadow-calendar-cell ${
+                  className={`flex min-h-[100px] sm:min-h-[160px] flex-col rounded-lg sm:rounded-xl bg-[var(--surface)] p-2 sm:p-3 shadow-calendar-cell ${
                     isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""
                   }`}
                 >
-                  <div className="flex shrink-0 items-center justify-between gap-0.5">
+                  <div className="flex shrink-0 items-center justify-between gap-1">
                     <p className={`font-bold text-xs sm:text-sm truncate min-w-0 ${isToday ? "text-[var(--accent)]" : "text-[var(--text)]"}`}>
                       {format(day, "d")} {dayLabels[day.getDay() === 0 ? 6 : day.getDay() - 1]}
                     </p>
@@ -327,9 +379,9 @@ export function CalendarView({
                       </button>
                     )}
                   </div>
-                  <div className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto max-h-[120px] sm:max-h-[200px]">
+                  <div className="mt-1.5 min-h-0 flex-1 space-y-1 overflow-y-auto max-h-[140px] sm:max-h-[220px]">
                     {dayEvents.length === 0 ? (
-                      <span className="text-[10px] text-[var(--muted)]">{t.noEvents}</span>
+                      <span className="text-xs text-[var(--muted)]">{t.noEvents}</span>
                     ) : (
                       dayEvents.map((e) => <EventChip key={e.id} e={e} />)
                     )}
@@ -355,29 +407,31 @@ export function CalendarView({
           d = addDays(d, 1);
         }
         return (
-          <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-xs sm:text-sm min-w-0">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2 text-xs sm:text-sm min-w-0">
             {dayLabels.map((label) => (
-              <div key={label} className="py-1 sm:py-2 text-center font-bold text-[var(--muted)] truncate">
+              <div key={label} className="py-2 text-center font-bold text-[var(--muted)] truncate">
                 {label}
               </div>
             ))}
             {days.map((day) => {
               const dayKey = format(day, "yyyy-MM-dd");
-              const dayEvents = getEventsForDay(day);
+              const dayEvents = getEventsForDaySortedByCourse(day);
               const isCurrentMonth = isSameMonth(day, current);
               const isToday = isSameDay(day, new Date());
+              const showEvents = dayEvents.slice(0, MAX_EVENTS_IN_CELL);
+              const moreCount = dayEvents.length - MAX_EVENTS_IN_CELL;
               return (
                 <div
                   key={day.toISOString()}
-                  className={`flex min-h-[80px] sm:min-h-[130px] flex-col rounded-lg sm:rounded-xl bg-[var(--surface)] p-1 sm:p-2 shadow-calendar-cell ${
+                  className={`flex min-h-[100px] sm:min-h-[150px] flex-col rounded-lg sm:rounded-xl bg-[var(--surface)] p-2 sm:p-3 shadow-calendar-cell ${
                     !isCurrentMonth ? "opacity-60" : ""
                   } ${isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""}`}
                 >
-                  <div className="flex shrink-0 items-center justify-between gap-0.5">
+                  <div className="flex shrink-0 items-center justify-between gap-1">
                     <button
                       type="button"
                       onClick={() => setSelectedDayForDetail(dayKey)}
-                      className={`min-w-0 flex-1 rounded px-1 text-left font-semibold hover:bg-[var(--border-subtle)] ${
+                      className={`min-w-0 flex-1 rounded px-1.5 py-0.5 text-left font-semibold hover:bg-[var(--border-subtle)] ${
                         isToday ? "font-bold text-[var(--accent)]" : "text-[var(--text)]"
                       }`}
                       title={t.viewDay}
@@ -401,12 +455,25 @@ export function CalendarView({
                     tabIndex={0}
                     onClick={() => setSelectedDayForDetail(dayKey)}
                     onKeyDown={(ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); setSelectedDayForDetail(dayKey); } }}
-                    className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto max-h-[120px] sm:max-h-[280px] cursor-pointer text-left"
+                    className="mt-1.5 min-h-0 flex-1 space-y-1 overflow-y-auto max-h-[140px] sm:max-h-[320px] cursor-pointer text-left"
                   >
                     {dayEvents.length === 0 ? (
-                      <span className="text-[10px] text-[var(--muted)]">{t.noEvents}</span>
+                      <span className="text-xs text-[var(--muted)] block py-0.5">{t.noEvents}</span>
                     ) : (
-                      dayEvents.map((e) => <EventChip key={e.id} e={e} />)
+                      <>
+                        {showEvents.map((e) => (
+                          <EventChip key={e.id} e={e} compact={dayEvents.length > MAX_EVENTS_IN_CELL} />
+                        ))}
+                        {moreCount > 0 && (
+                          <button
+                            type="button"
+                            onClick={(ev) => { ev.stopPropagation(); setSelectedDayForDetail(dayKey); }}
+                            className="w-full rounded px-2 py-1 text-left text-xs font-semibold text-[var(--accent)] hover:bg-[var(--accent-light)] mt-0.5"
+                          >
+                            +{moreCount} more
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -497,13 +564,22 @@ export function CalendarView({
             <h3 id="day-detail-title" className="text-lg font-bold text-[var(--text)]">
               {formatDisplayDate(selectedDayForDetail)}
             </h3>
-            <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto">
+            <div className="mt-3 min-h-0 flex-1 space-y-4 overflow-y-auto">
               {getEventsForDay(selectedDayForDetail).length === 0 ? (
                 <p className="text-sm text-[var(--muted)]">{t.noEvents}</p>
               ) : (
-                getEventsForDay(selectedDayForDetail)
-                  .sort((a, b) => (a.event_time || "").localeCompare(b.event_time || ""))
-                  .map((e) => <EventChip key={e.id} e={e} />)
+                getEventsForDayGroupedByCourse(selectedDayForDetail).map((group) => (
+                  <div key={group.courseId ?? "other"} className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg)]/50 p-3">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--muted)] truncate">
+                      {group.courseName}
+                    </p>
+                    <div className="space-y-1.5">
+                      {group.events.map((e) => (
+                        <EventChip key={e.id} e={e} />
+                      ))}
+                    </div>
+                  </div>
+                ))
               )}
             </div>
             <div className="mt-4 flex gap-3">

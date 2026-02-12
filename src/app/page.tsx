@@ -71,13 +71,14 @@ export default function HomePage() {
               {t.pricingSubline}
             </p>
           </div>
-          <div className="mt-6">
+          <div className="mt-6 flex flex-col items-start gap-1">
             <Link
               href={user ? "/dashboard" : "/signup"}
               className="inline-block rounded-2xl bg-[var(--accent)] px-8 py-4 text-base font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)]"
             >
               {t.upgrade}
             </Link>
+            <span className="text-xs text-[var(--muted)]">{t.upgradeSecureNote}</span>
           </div>
           </div>
           <div className="flex-shrink-0 md:w-[28rem]">
