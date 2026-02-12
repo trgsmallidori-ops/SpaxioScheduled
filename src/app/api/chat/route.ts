@@ -38,8 +38,8 @@ const CALENDAR_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
           event_time: { type: "string", description: "New time e.g. 14:00" },
           event_type: { type: "string", enum: ["class", "assignment", "test", "exam", "other"] },
         },
+        required: ["event_id"],
       },
-      required: ["event_id"],
     },
   },
   {
@@ -67,8 +67,8 @@ const CALENDAR_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
           event_time: { type: "string", description: "Time e.g. 14:00" },
           event_type: { type: "string", enum: ["class", "assignment", "test", "exam", "other"] },
         },
+        required: ["title", "event_date"],
       },
-      required: ["title", "event_date"],
     },
   },
 ];
@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = user.id;
 
   let body: { message?: string };
   try {
@@ -187,7 +188,7 @@ ${eventsText || "No events in this range."}
         .from("calendar_events")
         .select("id")
         .eq("id", eventId)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .single();
       if (!event) return "Event not found.";
       const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
@@ -195,7 +196,7 @@ ${eventsText || "No events in this range."}
       if (typeof args.event_date === "string" && DATE_ONLY.test(args.event_date.trim())) updates.event_date = args.event_date.trim();
       if (args.event_time !== undefined) updates.event_time = args.event_time === null || args.event_time === "" ? null : toTime(String(args.event_time));
       if (typeof args.event_type === "string" && EVENT_TYPES.includes(args.event_type as (typeof EVENT_TYPES)[number])) updates.event_type = args.event_type;
-      const { error } = await supabase.from("calendar_events").update(updates).eq("id", eventId).eq("user_id", user.id);
+      const { error } = await supabase.from("calendar_events").update(updates).eq("id", eventId).eq("user_id", userId);
       return error ? "Update failed." : "Updated.";
     }
     if (name === "delete_calendar_event") {
@@ -205,10 +206,10 @@ ${eventsText || "No events in this range."}
         .from("calendar_events")
         .select("id")
         .eq("id", eventId)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .single();
       if (!event) return "Event not found.";
-      const { error } = await supabase.from("calendar_events").delete().eq("id", eventId).eq("user_id", user.id);
+      const { error } = await supabase.from("calendar_events").delete().eq("id", eventId).eq("user_id", userId);
       return error ? "Delete failed." : "Deleted.";
     }
     if (name === "create_calendar_event") {
@@ -220,7 +221,7 @@ ${eventsText || "No events in this range."}
         : "other";
       const eventTime = args.event_time !== undefined && args.event_time !== null && args.event_time !== "" ? toTime(String(args.event_time)) : null;
       const { error } = await supabase.from("calendar_events").insert({
-        user_id: user.id,
+        user_id: userId,
         title,
         event_date: eventDate,
         event_time: eventTime,
