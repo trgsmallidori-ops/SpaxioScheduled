@@ -53,6 +53,34 @@ export async function PATCH(
     return "09:00:00";
   };
 
+  const DAY_TOKENS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+  const DAY_ALIASES: Record<string, (typeof DAY_TOKENS)[number]> = {
+    mon: "Mon", monday: "Mon",
+    tue: "Tue", tues: "Tue", tuesday: "Tue",
+    wed: "Wed", wednesday: "Wed",
+    thu: "Thu", thur: "Thu", thurs: "Thu", thursday: "Thu",
+    fri: "Fri", friday: "Fri",
+    sat: "Sat", saturday: "Sat",
+    sun: "Sun", sunday: "Sun",
+  };
+  const normalizeDay = (d: string): (typeof DAY_TOKENS)[number] | null => {
+    const t = String(d || "").trim().toLowerCase();
+    if (DAY_TOKENS.includes(t as (typeof DAY_TOKENS)[number])) return t as (typeof DAY_TOKENS)[number];
+    return DAY_ALIASES[t] ?? null;
+  };
+  const normalizeDays = (days: string[]): (typeof DAY_TOKENS)[number][] => {
+    const out: (typeof DAY_TOKENS)[number][] = [];
+    const seen = new Set<string>();
+    for (const d of days) {
+      const n = normalizeDay(d);
+      if (n && !seen.has(n)) {
+        seen.add(n);
+        out.push(n);
+      }
+    }
+    return out;
+  };
+
   const MAX_BLOCKS = 20;
   const rawBlocks: ClassScheduleBlock[] =
     Array.isArray(classSchedule) && classSchedule.length > 0
@@ -62,7 +90,12 @@ export async function PATCH(
         : [];
   const blocks: ClassScheduleBlock[] = rawBlocks
     .filter((b) => b.days?.length && b.start && b.end)
-    .map((b) => ({ days: b.days!, start: toTime(b.start!), end: toTime(b.end!) }));
+    .map((b) => ({
+      days: normalizeDays(b.days!),
+      start: toTime(b.start!),
+      end: toTime(b.end!),
+    }))
+    .filter((b) => b.days.length > 0);
 
   const updates: {
     class_time_start?: string | null;
@@ -101,7 +134,7 @@ export async function PATCH(
   }
 
   if (blocks.length > 0) {
-    const DAY_TOKENS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+    const UTC_DAY_TOKENS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
     const today = startOfDay(new Date());
     let startDate: Date = today;
     let endDate: Date = endOfMonth(addDays(today, 120));
@@ -115,6 +148,8 @@ export async function PATCH(
       endDate = termEnd;
     }
     if (startDate > endDate) endDate = startDate;
+    const startStr = format(startDate, "yyyy-MM-dd");
+    const endStr = format(endDate, "yyyy-MM-dd");
     const events: {
       user_id: string;
       course_id: string;
@@ -126,21 +161,24 @@ export async function PATCH(
     }[] = [];
     for (const block of blocks) {
       if (!block.days?.length || !block.start || !block.end) continue;
-      let d = new Date(startDate);
-      while (d <= endDate) {
-        const dayName = DAY_TOKENS[d.getDay()];
-        if (block.days.includes(dayName)) {
+      const allowedDays = new Set(block.days);
+      let d = new Date(startStr + "T12:00:00.000Z");
+      const endD = new Date(endStr + "T12:00:00.000Z");
+      while (d <= endD) {
+        const dayName = UTC_DAY_TOKENS[d.getUTCDay()];
+        if (allowedDays.has(dayName)) {
+          const eventDateStr = d.toISOString().slice(0, 10);
           events.push({
             user_id: user.id,
             course_id: id,
             title: "Class",
             event_type: "class",
-            event_date: format(d, "yyyy-MM-dd"),
+            event_date: eventDateStr,
             event_time: block.start,
             end_time: block.end,
           });
         }
-        d = addDays(d, 1);
+        d.setUTCDate(d.getUTCDate() + 1);
       }
     }
     if (events.length) await supabase.from("calendar_events").insert(events);

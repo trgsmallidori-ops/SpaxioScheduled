@@ -118,6 +118,18 @@ export default function DashboardPage() {
     refetchEvents();
   }
 
+  async function handleUpdateEvent(
+    eventId: string,
+    payload: { title: string; event_date: string; event_time: string | null; event_type: "class" | "assignment" | "test" | "exam" | "other" }
+  ) {
+    const res = await fetch(`/api/calendar-events/${eventId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) refetchEvents();
+  }
+
   async function handleAddEvent(payload: { title: string; event_date: string; event_time: string | null }) {
     if (!userId) return;
     const supabase = createClient();
@@ -199,7 +211,7 @@ export default function DashboardPage() {
               />
             )}
           </div>
-          <CalendarView events={filteredEvents} courseNames={courseNames} courseColors={courseColors} onUpdate={refetchEvents} onDeleteEvent={handleDeleteEvent} onAddEvent={handleAddEvent} />
+          <CalendarView events={filteredEvents} courseNames={courseNames} courseColors={courseColors} onUpdate={refetchEvents} onDeleteEvent={handleDeleteEvent} onAddEvent={handleAddEvent} onUpdateEvent={handleUpdateEvent} />
         </section>
       </div>
       <aside className="order-1 flex w-full flex-col gap-6 shrink-0 lg:order-2 lg:w-[340px]">

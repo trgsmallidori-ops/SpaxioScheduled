@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   format,
   startOfMonth,
@@ -36,6 +36,8 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
+const EVENT_TYPES = ["class", "assignment", "test", "exam", "other"] as const;
+
 export function CalendarView({
   events,
   courseNames = {},
@@ -43,6 +45,7 @@ export function CalendarView({
   onUpdate,
   onDeleteEvent,
   onAddEvent,
+  onUpdateEvent,
 }: {
   events: CalendarEvent[];
   courseNames?: Record<string, string>;
@@ -50,6 +53,10 @@ export function CalendarView({
   onUpdate: () => void;
   onDeleteEvent?: (eventId: string) => void | Promise<void>;
   onAddEvent?: (payload: { title: string; event_date: string; event_time: string | null }) => void | Promise<void>;
+  onUpdateEvent?: (
+    eventId: string,
+    payload: { title: string; event_date: string; event_time: string | null; event_type: (typeof EVENT_TYPES)[number] }
+  ) => void | Promise<void>;
 }) {
   const { t } = useLocale();
   const [current, setCurrent] = useState(new Date());
@@ -62,6 +69,26 @@ export function CalendarView({
   const [addEventTime, setAddEventTime] = useState("");
   const [addEventSaving, setAddEventSaving] = useState(false);
   const [selectedDayForDetail, setSelectedDayForDetail] = useState<string | null>(null);
+  const [editEventSaving, setEditEventSaving] = useState(false);
+  const [editForm, setEditForm] = useState<{
+    title: string;
+    event_date: string;
+    event_time: string;
+    event_type: (typeof EVENT_TYPES)[number];
+  }>({ title: "", event_date: "", event_time: "", event_type: "other" });
+
+  useEffect(() => {
+    if (selectedEvent) {
+      setEditForm({
+        title: selectedEvent.title,
+        event_date: selectedEvent.event_date,
+        event_time: selectedEvent.event_time ? selectedEvent.event_time.slice(0, 5) : "",
+        event_type: EVENT_TYPES.includes(selectedEvent.event_type as (typeof EVENT_TYPES)[number])
+          ? (selectedEvent.event_type as (typeof EVENT_TYPES)[number])
+          : "other",
+      });
+    }
+  }, [selectedEvent]);
 
   const getEventsForDay = (day: Date | string) => {
     const key = typeof day === "string" ? day : format(day, "yyyy-MM-dd");
@@ -129,6 +156,23 @@ export function CalendarView({
       setAddEventDay(null);
     } finally {
       setAddEventSaving(false);
+    }
+  }
+
+  async function submitEditEvent() {
+    if (!selectedEvent || !onUpdateEvent || !editForm.title.trim()) return;
+    setEditEventSaving(true);
+    try {
+      await onUpdateEvent(selectedEvent.id, {
+        title: editForm.title.trim(),
+        event_date: editForm.event_date,
+        event_time: editForm.event_time.trim() || null,
+        event_type: editForm.event_type,
+      });
+      onUpdate();
+      setSelectedEvent(null);
+    } finally {
+      setEditEventSaving(false);
     }
   }
 
@@ -489,40 +533,87 @@ export function CalendarView({
       {selectedEvent && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={() => !deleting && setSelectedEvent(null)}
+          onClick={() => !deleting && !editEventSaving && setSelectedEvent(null)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="event-dialog-title"
         >
           <div
-            className="w-full max-w-sm rounded-2xl bg-[var(--surface)] p-6 shadow-soft-lg"
+            className="w-full max-w-sm rounded-2xl bg-[var(--surface)] p-6 shadow-soft-lg border border-[var(--border-subtle)]"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 id="event-dialog-title" className="text-lg font-bold text-[var(--text)]">
-              {eventLabel(selectedEvent)}
+              {t.edit} {EVENT_TYPE_LABELS[selectedEvent.event_type] ?? selectedEvent.event_type}
             </h3>
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              {formatDisplayDate(selectedEvent.event_date)}
-              {selectedEvent.event_time ? ` · ${selectedEvent.event_time}` : ""}
-            </p>
-            <p className="mt-0.5 text-xs text-[var(--muted)]">
-              {EVENT_TYPE_LABELS[selectedEvent.event_type] ?? selectedEvent.event_type}
-            </p>
-            <div className="mt-6 flex gap-3">
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--muted)]">{t.addEventTitle}</label>
+                <input
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                  placeholder={t.addEventTitlePlaceholder}
+                  className="mt-1 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--input-bg)] px-4 py-2.5 text-sm text-[var(--text)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--muted)]">{t.date}</label>
+                <input
+                  type="date"
+                  value={editForm.event_date}
+                  onChange={(e) => setEditForm((f) => ({ ...f, event_date: e.target.value }))}
+                  className="mt-1 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--input-bg)] px-4 py-2.5 text-sm text-[var(--text)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--muted)]">{t.addEventTimeOptional}</label>
+                <input
+                  type="time"
+                  value={editForm.event_time}
+                  onChange={(e) => setEditForm((f) => ({ ...f, event_time: e.target.value }))}
+                  className="mt-1 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--input-bg)] px-4 py-2.5 text-sm text-[var(--text)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--muted)]">{t.eventType ?? "Type"}</label>
+                <select
+                  value={editForm.event_type}
+                  onChange={(e) => setEditForm((f) => ({ ...f, event_type: e.target.value as (typeof EVENT_TYPES)[number] }))}
+                  className="mt-1 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--input-bg)] px-4 py-2.5 text-sm text-[var(--text)]"
+                >
+                  {EVENT_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {EVENT_TYPE_LABELS[type]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => setSelectedEvent(null)}
-                disabled={deleting}
-                className="flex-1 rounded-xl bg-[var(--border-subtle)] py-2.5 text-sm font-bold text-[var(--text)] hover:bg-[var(--border)] disabled:opacity-50"
+                disabled={deleting || editEventSaving}
+                className="flex-1 min-w-0 rounded-xl bg-[var(--border-subtle)] py-2.5 text-sm font-bold text-[var(--text)] hover:bg-[var(--border)] disabled:opacity-50"
               >
                 {t.cancel}
               </button>
+              {onUpdateEvent && (
+                <button
+                  type="button"
+                  onClick={submitEditEvent}
+                  disabled={editEventSaving || !editForm.title.trim()}
+                  className="flex-1 min-w-0 rounded-xl bg-[var(--accent)] py-2.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50"
+                >
+                  {editEventSaving ? "..." : t.save}
+                </button>
+              )}
               {onDeleteEvent && (
                 <button
                   type="button"
                   onClick={openDeleteConfirm}
-                  disabled={deleting}
-                  className="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50"
+                  disabled={deleting || editEventSaving}
+                  className="flex-1 min-w-0 rounded-xl bg-red-500 py-2.5 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50"
                 >
                   {deleting ? "..." : t.delete}
                 </button>

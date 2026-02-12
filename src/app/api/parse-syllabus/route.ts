@@ -69,8 +69,9 @@ CRITICAL RULES:
    - Blank "Readings" for a row often means the Topic is an event (test, review) rather than a reading-based lecture—use that as a hint.
 
    DATE HANDLING:
+   - The calendar year is the current year (e.g. 2026). Days in the syllabus outline correspond to actual weekdays: e.g. if the table says "Week 1" with dates "Jan 20 - 22", then Jan 20 is the actual Monday (or first day of that range), Jan 21 Tuesday, Jan 22 Wednesday. Always assign dates so the weekday matches the real calendar (Jan 20, 2026 is a Tuesday; use a calendar for the year).
    - Search the ENTIRE document: "Tentative Schedule", "Course Calendar", "Important Dates", "Weekly Schedule", tables, bullet lists, paragraphs.
-   - Convert "Oct 15", "10/15", "October 15", "March 10th", "Week 7", "Jan 20 - 22" to YYYY-MM-DD. For a range "Jan 20 - 22", you can assign different topic lines to Jan 20, Jan 21, Jan 22 when the table has multiple lines. For "Week N", use termStartDate: first day of that week (e.g. Week 1 = termStartDate, Week 2 = termStartDate + 7 days).
+   - Convert "Oct 15", "10/15", "October 15", "March 10th", "Week 7", "Jan 20 - 22" to YYYY-MM-DD. For a range "Jan 20 - 22", assign the first topic line to the first date, second to the second date, etc., using the correct weekday for that calendar date. For "Week N", use termStartDate: first day of that week (e.g. Week 1 = termStartDate, Week 2 = termStartDate + 7 days).
    - When one row has both an important event and a lecture topic (e.g. "Review & Test #1" and "Test #1", or "Feedback on Test #1" and "Process Design and Facility Layout"), create separate entries with the correct dates; do not add "Class" for that day.
    - Do NOT include recurring weekly "class" or "lecture" meetings in tentativeSchedule. Do NOT add any event titled "Class". Reminders are only sent for assignment, test, and exam—never for type "other".
 
@@ -439,7 +440,6 @@ async function handleParseSyllabus(request: NextRequest) {
   }
 
   const { format } = await import("date-fns");
-  const { enUS } = await import("date-fns/locale");
 
   if (!freeAccess) {
     if (freeUsed < FREE_UPLOADS) {
@@ -461,20 +461,28 @@ async function handleParseSyllabus(request: NextRequest) {
     }
   }
 
+  // Suggest class days only from the syllabus lecture schedule (e.g. "Tue/Thu"), never from
+  // assignment/test dates — those are one-off and would wrongly suggest every weekday.
   const suggestedDays: string[] = [];
+  if (rawClassSchedule && !isAllSevenDays(rawClassSchedule)) {
+    const seen = new Set<string>();
+    for (const b of rawClassSchedule) {
+      for (const d of b.days || []) {
+        const n = typeof d === "string" ? shortDay(d) : null;
+        if (n && dayOrder.includes(n)) seen.add(n);
+      }
+    }
+    suggestedDays.push(...dayOrder.filter((day) => seen.has(day)));
+  }
   let suggestedTermStart: string | undefined;
   let suggestedTermEnd: string | undefined;
   if (parsed.tentativeSchedule?.length) {
-    const seen = new Set<string>();
     const validDates: string[] = [];
     for (const item of parsed.tentativeSchedule) {
       const d = item?.date && String(item.date).trim();
       if (!d || !dateOnly.test(d)) continue;
       validDates.push(d);
-      const dayName = format(new Date(d + "T12:00:00"), "EEE", { locale: enUS });
-      if (dayOrder.includes(dayName)) seen.add(dayName);
     }
-    suggestedDays.push(...dayOrder.filter((day) => seen.has(day)));
     if (validDates.length > 0) {
       validDates.sort();
       suggestedTermStart = validDates[0];
