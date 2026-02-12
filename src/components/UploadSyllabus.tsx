@@ -18,10 +18,13 @@ export function UploadSyllabus({
   onSuccess: () => void;
 }) {
   const { t } = useLocale();
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
   const [error, setError] = useState("");
   const [parsed, setParsed] = useState<Record<string, unknown> | null>(null);
+  const fileQueueRef = useRef<File[]>([]);
+  const uploadTotalRef = useRef(0);
   const [needsTermDates, setNeedsTermDates] = useState<{
     courseId: string;
     courseName: string;
@@ -81,66 +84,98 @@ export function UploadSyllabus({
     setBlocks((b) => (b.length <= 1 ? b : b.filter((_, j) => j !== i)));
   }
 
+  async function processOneFile(file: File): Promise<{ success: boolean; needsFollowUp: boolean }> {
+    const formData = new FormData();
+    formData.set("file", file);
+    const res = await fetch("/api/parse-syllabus", { method: "POST", body: formData });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (data.code === "RATE_LIMIT" || res.status === 429) {
+        setError(data.error || t.aiBusyTryLater);
+      } else if (data.code === "QUOTA_EXCEEDED") {
+        setError(t.noUploadsLeftPurchase);
+      } else {
+        setError(data.error || "Upload failed");
+      }
+      setLoading(false);
+      setUploadProgress(null);
+      fileQueueRef.current = [];
+      return { success: false, needsFollowUp: false };
+    }
+    setParsed(data.parsed);
+    const name = data.parsed?.courseName || data.parsed?.courseCode || "This course";
+    const start = data.suggestedStart ? String(data.suggestedStart).slice(0, 5) : "09:00";
+    const end = data.suggestedEnd ? String(data.suggestedEnd).slice(0, 5) : "10:00";
+    let needsFollowUp = false;
+    if (data.courseId) {
+      if (data.needsTermDates) {
+        needsFollowUp = true;
+        setNeedsTermDates({
+          courseId: data.courseId,
+          courseName: String(name),
+          suggestedTermStart: data.suggestedTermStart ? String(data.suggestedTermStart).slice(0, 10) : undefined,
+          suggestedTermEnd: data.suggestedTermEnd ? String(data.suggestedTermEnd).slice(0, 10) : undefined,
+          suggestedDays: Array.isArray(data.suggestedDays) ? data.suggestedDays : undefined,
+          suggestedStart: start,
+          suggestedEnd: end,
+        });
+        setTermStart(data.suggestedTermStart ? String(data.suggestedTermStart).slice(0, 10) : "");
+        setTermEnd(data.suggestedTermEnd ? String(data.suggestedTermEnd).slice(0, 10) : "");
+      } else {
+        needsFollowUp = true;
+        setNeedsClassTime({
+          courseId: data.courseId,
+          courseName: String(name),
+          suggestedDays: Array.isArray(data.suggestedDays) ? data.suggestedDays : undefined,
+          suggestedStart: start,
+          suggestedEnd: end,
+        });
+        setBlocks([{ start, end, days: Array.isArray(data.suggestedDays) ? data.suggestedDays : [] }]);
+      }
+    }
+    setLoading(false);
+    setUploadProgress(null);
+    return { success: true, needsFollowUp };
+  }
+
+  async function processNextInQueue() {
+    const queue = fileQueueRef.current;
+    if (queue.length === 0) {
+      setUploadProgress(null);
+      setLoading(false);
+      return;
+    }
+    const total = uploadTotalRef.current;
+    setUploadProgress({ current: total - queue.length + 1, total });
+    const file = queue[0];
+    const result = await processOneFile(file);
+    if (!result.success) return;
+    fileQueueRef.current = queue.slice(1);
+    if (result.needsFollowUp) return;
+    onSuccess();
+    if (fileQueueRef.current.length > 0) {
+      setLoading(true);
+      setNeedsTermDates(null);
+      setNeedsClassTime(null);
+      setParsed(null);
+      processNextInQueue();
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!file) return;
+    if (files.length === 0) return;
     setError("");
-    setLoading(true);
     setParsed(null);
     setNeedsTermDates(null);
     setNeedsClassTime(null);
-    const formData = new FormData();
-    formData.set("file", file);
-    try {
-      const res = await fetch("/api/parse-syllabus", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        if (data.code === "QUOTA_EXCEEDED") {
-          setError(t.noUploadsLeftPurchase);
-        } else {
-          const msg = data.error || "Upload failed";
-          setError(data.details ? `${msg}\n${data.details}` : msg);
-        }
-        setLoading(false);
-        return;
-      }
-      setParsed(data.parsed);
-      setFile(null);
-      if (inputRef.current) inputRef.current.value = "";
-      if (data.courseId) {
-        const name = data.parsed?.courseName || data.parsed?.courseCode || "This course";
-        const start = data.suggestedStart ? String(data.suggestedStart).slice(0, 5) : "09:00";
-        const end = data.suggestedEnd ? String(data.suggestedEnd).slice(0, 5) : "10:00";
-        if (data.needsTermDates) {
-          setNeedsTermDates({
-            courseId: data.courseId,
-            courseName: String(name),
-            suggestedTermStart: data.suggestedTermStart ? String(data.suggestedTermStart).slice(0, 10) : undefined,
-            suggestedTermEnd: data.suggestedTermEnd ? String(data.suggestedTermEnd).slice(0, 10) : undefined,
-            suggestedDays: Array.isArray(data.suggestedDays) ? data.suggestedDays : undefined,
-            suggestedStart: start,
-            suggestedEnd: end,
-          });
-          setTermStart(data.suggestedTermStart ? String(data.suggestedTermStart).slice(0, 10) : "");
-          setTermEnd(data.suggestedTermEnd ? String(data.suggestedTermEnd).slice(0, 10) : "");
-        } else {
-          setNeedsClassTime({
-            courseId: data.courseId,
-            courseName: String(name),
-            suggestedDays: Array.isArray(data.suggestedDays) ? data.suggestedDays : undefined,
-            suggestedStart: start,
-            suggestedEnd: end,
-          });
-          setBlocks([{ start, end, days: Array.isArray(data.suggestedDays) ? data.suggestedDays : [] }]);
-        }
-      }
-    } catch {
-      setError("Network error");
-    }
-    setLoading(false);
+    const fileList = [...files];
+    fileQueueRef.current = fileList;
+    uploadTotalRef.current = fileList.length;
+    setFiles([]);
+    if (inputRef.current) inputRef.current.value = "";
+    setLoading(true);
+    processNextInQueue();
   }
 
   async function handleSaveTermDates() {
@@ -199,6 +234,12 @@ export function UploadSyllabus({
       setNeedsClassTime(null);
       setBlocks([emptyBlock()]);
       onSuccess();
+      if (fileQueueRef.current.length > 0) {
+        setLoading(true);
+        setNeedsTermDates(null);
+        setParsed(null);
+        processNextInQueue();
+      }
     } catch {
       setError("Network error");
     }
@@ -219,25 +260,35 @@ export function UploadSyllabus({
           type="file"
           accept=".pdf,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           className="sr-only"
-          aria-label="Choose syllabus file"
+          aria-label="Choose syllabus file(s)"
+          multiple
           onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) setFile(f);
+            const list = e.target.files;
+            if (list?.length) setFiles(Array.from(list));
           }}
         />
         <div className="mb-2 text-4xl">📄</div>
-        {file ? (
-          <p className="text-base font-bold text-[var(--text)]">{file.name}</p>
+        {files.length > 0 ? (
+          <p className="text-base font-bold text-[var(--text)]">
+            {files.length === 1 ? files[0].name : `${files.length} files selected`}
+          </p>
         ) : (
           <p className="text-base font-semibold text-[var(--muted)]">{t.dragDrop}</p>
         )}
       </div>
+      {uploadProgress && (
+        <p className="mt-2 text-sm font-semibold text-[var(--text)]">
+          {t.parsingCount
+            .replace("{{current}}", String(uploadProgress.current))
+            .replace("{{total}}", String(uploadProgress.total))}
+        </p>
+      )}
       {error && (
         <div className="mt-3 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700 whitespace-pre-wrap">{error}</div>
       )}
       <button
         type="submit"
-        disabled={!file || loading}
+        disabled={files.length === 0 || loading}
         className="mt-5 rounded-xl bg-[var(--accent)] px-8 py-3.5 text-base font-bold text-white transition hover:bg-[var(--accent-hover)] disabled:opacity-50"
       >
         {loading ? t.parsing : t.upload}

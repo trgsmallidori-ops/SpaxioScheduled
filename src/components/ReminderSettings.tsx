@@ -113,19 +113,19 @@ export function ReminderSettings({ userId, userEmail, onSaved }: ReminderSetting
       <button
         type="button"
         onClick={() => setCollapsed((c) => !c)}
-        className="flex w-full items-center justify-between gap-2 p-4 text-left hover:bg-[var(--bg)]/80 transition-colors"
+        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left hover:bg-[var(--bg)]/80 transition-colors"
         aria-expanded={!collapsed}
       >
         <span className="flex items-center gap-2">
-          <span className="text-sm font-bold text-[var(--text)]">🔔</span>
-          <span className="text-sm font-bold text-[var(--text)]">{t.remindMe}</span>
+          <span className="text-xs font-bold text-[var(--text)]">🔔</span>
+          <span className="text-xs font-bold text-[var(--text)]">{t.remindMe}</span>
         </span>
         <span className="text-[var(--muted)] transition-transform duration-200" aria-hidden>
           {collapsed ? "▼" : "▲"}
         </span>
       </button>
       {!collapsed && (
-        <form onSubmit={handleSave} className="border-t border-[var(--divider)] p-4 pt-3 space-y-3">
+        <form onSubmit={handleSave} className="border-t border-[var(--divider)] p-3 pt-2 space-y-2">
         <div>
           <label className="block text-xs font-semibold text-[var(--muted)]">{t.reminderEmail}</label>
           <input

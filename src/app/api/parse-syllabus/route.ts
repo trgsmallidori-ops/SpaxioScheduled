@@ -216,7 +216,13 @@ async function handleParseSyllabus(request: NextRequest) {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     if (/rate limit|quota|insufficient_quota|429/i.test(msg)) {
-      return NextResponse.json({ error: "AI rate limit — try again later" }, { status: 429 });
+      return NextResponse.json(
+        {
+          error: "Our AI is under heavy load. Please try again in a few minutes.",
+          code: "RATE_LIMIT",
+        },
+        { status: 429 }
+      );
     }
     if (/invalid.*key|api_key|401|403/i.test(msg)) {
       return NextResponse.json({ error: "AI service configuration error" }, { status: 500 });

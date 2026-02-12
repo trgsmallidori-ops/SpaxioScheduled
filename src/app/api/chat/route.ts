@@ -123,7 +123,13 @@ ${eventsText || "No events in this range."}
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (/rate limit|quota|insufficient_quota|429/i.test(msg)) {
-      return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
+      return NextResponse.json(
+        {
+          error: "Our AI is under heavy load. Please try again in a few minutes.",
+          code: "RATE_LIMIT",
+        },
+        { status: 429 }
+      );
     }
     console.error("[chat]", msg);
     return NextResponse.json(

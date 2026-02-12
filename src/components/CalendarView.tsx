@@ -168,8 +168,8 @@ export function CalendarView({
   }
 
   return (
-    <div className="p-5">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div className="p-3">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -323,7 +323,7 @@ export function CalendarView({
               return (
                 <div
                   key={day.toISOString()}
-                  className={`flex min-h-[100px] flex-col rounded-xl bg-[var(--surface)] p-2 shadow-calendar-cell ${
+                  className={`flex min-h-[130px] flex-col rounded-xl bg-[var(--surface)] p-2 shadow-calendar-cell ${
                     !isCurrentMonth ? "opacity-60" : ""
                   } ${isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""}`}
                 >
@@ -355,7 +355,7 @@ export function CalendarView({
                     tabIndex={0}
                     onClick={() => setSelectedDayForDetail(dayKey)}
                     onKeyDown={(ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); setSelectedDayForDetail(dayKey); } }}
-                    className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto max-h-[220px] cursor-pointer text-left"
+                    className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto max-h-[280px] cursor-pointer text-left"
                   >
                     {dayEvents.length === 0 ? (
                       <span className="text-[10px] text-[var(--muted)]">{t.noEvents}</span>
