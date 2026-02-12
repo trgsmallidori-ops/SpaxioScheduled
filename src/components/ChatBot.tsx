@@ -35,8 +35,11 @@ export function ChatBot() {
       const data = await res.json();
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: data.reply || "No response." },
+        { role: "assistant", content: data.reply || data.error || "No response." },
       ]);
+      if (data.calendarUpdated) {
+        window.dispatchEvent(new CustomEvent("spaxio:calendar-updated"));
+      }
     } catch {
       setMessages((m) => [
         ...m,
@@ -80,9 +83,14 @@ export function ChatBot() {
           <div className="flex min-h-0 flex-1 flex-col">
             <div className="min-h-[160px] flex-1 space-y-3 overflow-y-auto p-4">
               {messages.length === 0 && (
-                <p className="text-sm font-medium text-[var(--muted)]">
-                  {t.placeholder}
-                </p>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-[var(--muted)]">
+                    {t.placeholder}
+                  </p>
+                  <p className="text-xs text-[var(--muted)]">
+                    {t.chatHint}
+                  </p>
+                </div>
               )}
               {messages.map((msg, i) => (
                 <div

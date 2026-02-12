@@ -9,12 +9,12 @@ import type { ClassScheduleBlock } from "@/types/database";
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const DAY_LABELS: Record<(typeof DAYS)[number], string> = {
   Mon: "M",
-  Tue: "Tu",
+  Tue: "T",
   Wed: "W",
-  Thu: "Th",
+  Thu: "T",
   Fri: "F",
-  Sat: "Sa",
-  Sun: "Su",
+  Sat: "S",
+  Sun: "S",
 };
 
 function courseNeedsClassTime(c: Course): boolean {
@@ -178,6 +178,7 @@ export function AddClassTime({ onSave }: { onSave: () => void }) {
                         <button
                           key={day}
                           type="button"
+                          title={day}
                           onClick={() => toggleDay(i, day)}
                           className={`rounded-lg px-2.5 py-1 text-sm font-bold ${
                             block.days.includes(day) ? "bg-[var(--accent)] text-white" : "bg-[var(--surface)] text-[var(--muted)]"

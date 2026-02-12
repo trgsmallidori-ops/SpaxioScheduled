@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/contexts/LocaleContext";
 import { CalendarView } from "@/components/CalendarView";
@@ -77,7 +77,7 @@ export default function DashboardPage() {
       .then(({ data }) => setQuota(data as UserQuota | null));
   }, [userId]);
 
-  const refetchEvents = () => {
+  const refetchEvents = useCallback(() => {
     if (!userId) return;
     const supabase = createClient();
     supabase
@@ -98,7 +98,13 @@ export default function DashboardPage() {
       .eq("user_id", userId)
       .single()
       .then(({ data }) => setQuota(data as UserQuota | null));
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    const handler = () => refetchEvents();
+    window.addEventListener("spaxio:calendar-updated", handler);
+    return () => window.removeEventListener("spaxio:calendar-updated", handler);
+  }, [refetchEvents]);
 
   const filteredEvents =
     courseFilterId === "all"
