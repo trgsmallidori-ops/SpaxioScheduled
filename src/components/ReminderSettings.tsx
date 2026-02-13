@@ -38,38 +38,50 @@ export function ReminderSettings({ userId, userEmail, onSaved }: ReminderSetting
   useEffect(() => {
     const supabase = createClient();
     let cancelled = false;
-    supabase
-      .from("notification_preferences")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          console.error("[ReminderSettings] load error", error);
-          setLoading(false);
-          return;
-        }
-        if (data) {
-          const p = data as NotificationPreferences;
-          setPrefs(p);
-          setEmail(p.email || userEmail);
-          const d = p.remind_days_before ?? 0;
-          const w = p.remind_weeks_before ?? 0;
-          setCustomDays(d);
-          setCustomWeeks(w);
-          if (w > 0 && d === 0) {
-            setMode("weeks");
-            setWeeks(WEEK_OPTIONS.includes(w as 1 | 2 | 3 | 4 | 5) ? w : 1);
-          } else if (d > 0 && DAY_OPTIONS.includes(d as 1 | 2 | 3 | 4 | 5 | 6) && w === 0) {
-            setMode("days");
-            setDays(d as 1 | 2 | 3 | 4 | 5 | 6);
-          } else {
-            setMode("custom");
-          }
-        }
+
+    async function load() {
+      // Ensure session is ready before querying (avoids RLS returning empty on refresh)
+      let { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        await new Promise((r) => setTimeout(r, 100));
+        ({ data: { session } } = await supabase.auth.getSession());
+      }
+      if (cancelled || !session) {
         setLoading(false);
-      });
+        return;
+      }
+      const { data, error } = await supabase
+        .from("notification_preferences")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) {
+        console.error("[ReminderSettings] load error", error);
+        setLoading(false);
+        return;
+      }
+      if (data) {
+        const p = data as NotificationPreferences;
+        setPrefs(p);
+        setEmail(p.email || userEmail);
+        const d = p.remind_days_before ?? 0;
+        const w = p.remind_weeks_before ?? 0;
+        setCustomDays(d);
+        setCustomWeeks(w);
+        if (w > 0 && d === 0) {
+          setMode("weeks");
+          setWeeks(WEEK_OPTIONS.includes(w as 1 | 2 | 3 | 4 | 5) ? w : 1);
+        } else if (d > 0 && DAY_OPTIONS.includes(d as 1 | 2 | 3 | 4 | 5 | 6) && w === 0) {
+          setMode("days");
+          setDays(d as 1 | 2 | 3 | 4 | 5 | 6);
+        } else {
+          setMode("custom");
+        }
+      }
+      setLoading(false);
+    }
+    load();
     return () => { cancelled = true; };
   }, [userId, userEmail]);
 
