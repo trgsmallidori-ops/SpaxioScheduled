@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/contexts/LocaleContext";
 import { CalendarView } from "@/components/CalendarView";
-import { ReminderSettings } from "@/components/ReminderSettings";
 import { UploadSyllabus } from "@/components/UploadSyllabus";
 import { QuotaCard } from "@/components/QuotaCard";
 import { AddClassTime } from "@/components/AddClassTime";
@@ -28,6 +27,7 @@ export default function DashboardPage() {
   const [canceled, setCanceled] = useState(false);
   const [deleteConfirmCourseId, setDeleteConfirmCourseId] = useState<string | null>(null);
   const [deleteCourseLoading, setDeleteCourseLoading] = useState(false);
+  const [syllabusCollapsed, setSyllabusCollapsed] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -158,116 +158,124 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex w-full max-w-full flex-col gap-4 sm:gap-6 bg-[var(--bg)] px-3 py-4 sm:px-6 sm:py-6 lg:flex-row min-w-0">
-      <div className="min-w-0 flex-1 order-2 lg:order-1">
-        {success && (
-          <div className="mb-4 rounded-2xl bg-[var(--green-light)] px-5 py-3 text-base font-semibold text-[var(--text)] shadow-soft">
-            Payment successful. You have 10 more uploads.
-          </div>
-        )}
-        {canceled && (
-          <div className="mb-4 rounded-2xl bg-[var(--orange-light)] px-5 py-3 text-base font-semibold text-[var(--text)] shadow-soft">
-            Payment canceled.
-          </div>
-        )}
-        {!isCreatorOrAdmin && quota && (quota.paid_uploads_purchased ?? 0) - (quota.paid_uploads_used ?? 0) + Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0)) <= 0 && (
-          <div className="mb-4 rounded-2xl border-2 border-[var(--accent)] bg-[var(--accent-light)]/50 px-5 py-4 text-base font-semibold text-[var(--text)] shadow-soft">
-            <p>{t.outOfUploads}</p>
-            <p className="mt-1 text-sm font-medium text-[var(--muted)]">{t.outOfUploadsMessage}</p>
-          </div>
-        )}
-        <section className="rounded-2xl bg-[var(--surface)] shadow-soft min-w-0 overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--divider)] px-3 py-2 sm:px-4">
-            <h2 className="text-base sm:text-lg font-bold text-[var(--text)] truncate min-w-0">
-              {t.calendar}
-            </h2>
-            <div className="flex flex-wrap items-center gap-2 min-w-0">
-              <label className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-[var(--muted)]">{t.filterByCourse}</span>
-                <select
-                  value={courseFilterId}
-                  onChange={(e) => setCourseFilterId(e.target.value)}
-                  className="rounded-xl border border-[var(--divider)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--text)] shadow-soft"
-                >
-                  <option value="all">{t.allCourses}</option>
-                  {courses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                      {c.code ? ` (${c.code})` : ""}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {courseFilterId !== "all" && (
-                <button
-                  type="button"
-                  onClick={() => setDeleteConfirmCourseId(courseFilterId)}
-                  className="rounded-xl bg-red-500 px-3 py-2 text-sm font-bold text-white hover:bg-red-600"
-                >
-                  {t.deleteCourse}
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="border-b border-[var(--divider)] px-3 py-2 sm:px-4">
-            {userId && (
-              <ReminderSettings
-                userId={userId}
-                userEmail={userEmail}
-              />
-            )}
-          </div>
-          <CalendarView events={filteredEvents} courseNames={courseNames} courseColors={courseColors} onUpdate={refetchEvents} onDeleteEvent={handleDeleteEvent} onAddEvent={handleAddEvent} onUpdateEvent={handleUpdateEvent} />
-        </section>
-      </div>
-      <aside className="order-1 flex w-full flex-col gap-4 sm:gap-6 shrink-0 lg:order-2 lg:w-[340px] min-w-0">
-        <section className="rounded-2xl bg-[var(--surface)] p-4 sm:p-6 shadow-soft min-w-0">
-          <h2 className="text-xl font-bold text-[var(--text)]">
+    <div className="flex flex-1 w-full max-w-full flex-col gap-4 sm:gap-6 bg-[var(--bg)] px-3 py-4 sm:px-6 sm:py-6 min-w-0 min-h-0">
+      {success && (
+        <div className="rounded-2xl bg-[var(--green-light)] px-5 py-3 text-base font-semibold text-[var(--text)] shadow-soft">
+          Payment successful. You have 10 more uploads.
+        </div>
+      )}
+      {canceled && (
+        <div className="rounded-2xl bg-[var(--orange-light)] px-5 py-3 text-base font-semibold text-[var(--text)] shadow-soft">
+          Payment canceled.
+        </div>
+      )}
+      {!isCreatorOrAdmin && quota && (quota.paid_uploads_purchased ?? 0) - (quota.paid_uploads_used ?? 0) + Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0)) <= 0 && (
+        <div className="rounded-2xl border-2 border-[var(--accent)] bg-[var(--accent-light)]/50 px-5 py-4 text-base font-semibold text-[var(--text)] shadow-soft">
+          <p>{t.outOfUploads}</p>
+          <p className="mt-1 text-sm font-medium text-[var(--muted)]">{t.outOfUploadsMessage}</p>
+        </div>
+      )}
+
+      {/* Collapsible syllabus upload — above calendar */}
+      <section className="rounded-2xl bg-[var(--surface)] shadow-soft min-w-0 overflow-hidden">
+        <button
+          type="button"
+          className="flex w-full flex-wrap items-center justify-between gap-2 border-b border-[var(--divider)] px-4 py-3 sm:px-6 sm:py-4 text-left hover:bg-[var(--bg)]/50 transition-colors"
+          onClick={() => setSyllabusCollapsed((c) => !c)}
+          aria-expanded={!syllabusCollapsed}
+        >
+          <h2 className="text-base sm:text-lg font-bold text-[var(--text)]">
             {t.uploadSyllabus}
           </h2>
-          <p className="mt-2 text-[var(--muted)]">
-            {t.uploadSyllabusDesc}
-          </p>
-          {!isCreatorOrAdmin && quota && (quota.paid_uploads_purchased ?? 0) - (quota.paid_uploads_used ?? 0) + Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0)) <= 0 ? (
-            <>
-              <div className="mt-4 rounded-xl border-2 border-[var(--accent)] bg-[var(--accent-light)]/30 px-4 py-4">
-                <p className="font-semibold text-[var(--text)]">{t.outOfUploads}</p>
-                <p className="mt-1 text-sm text-[var(--muted)]">{t.outOfUploadsMessage}</p>
-              </div>
-              <QuotaCard
-                quota={quota}
-                isCreatorOrAdmin={false}
-                onPurchaseComplete={refetchEvents}
-              />
-            </>
-          ) : (
-            <>
-              <UploadSyllabus onSuccess={refetchEvents} />
-              <AddClassTime onSave={refetchEvents} />
-              {!isCreatorOrAdmin && (
+          <span className="text-[var(--muted)]" aria-hidden>
+            {syllabusCollapsed ? "▼" : "▲"}
+          </span>
+        </button>
+        {!syllabusCollapsed && (
+          <div className="p-4 sm:p-6">
+            <p className="text-[var(--muted)]">
+              {t.uploadSyllabusDesc}
+            </p>
+            {!isCreatorOrAdmin && quota && (quota.paid_uploads_purchased ?? 0) - (quota.paid_uploads_used ?? 0) + Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0)) <= 0 ? (
+              <>
+                <div className="mt-4 rounded-xl border-2 border-[var(--accent)] bg-[var(--accent-light)]/30 px-4 py-4">
+                  <p className="font-semibold text-[var(--text)]">{t.outOfUploads}</p>
+                  <p className="mt-1 text-sm text-[var(--muted)]">{t.outOfUploadsMessage}</p>
+                </div>
                 <QuotaCard
                   quota={quota}
                   isCreatorOrAdmin={false}
                   onPurchaseComplete={refetchEvents}
                 />
-              )}
-            </>
-          )}
-          {isCreatorOrAdmin && (
-            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl bg-[var(--green-light)] px-5 py-3 shadow-soft">
-              <p className="text-sm font-semibold text-[var(--text)]">
-                You have free uploads (creator or admin).
-              </p>
-              <QuotaCard
-                quota={quota}
-                isCreatorOrAdmin={true}
-                onPurchaseComplete={refetchEvents}
-                showTestCheckout
-              />
-            </div>
-          )}
-        </section>
-      </aside>
+              </>
+            ) : (
+              <>
+                <UploadSyllabus onSuccess={refetchEvents} />
+                <AddClassTime onSave={refetchEvents} />
+                {!isCreatorOrAdmin && (
+                  <QuotaCard
+                    quota={quota}
+                    isCreatorOrAdmin={false}
+                    onPurchaseComplete={refetchEvents}
+                  />
+                )}
+              </>
+            )}
+            {isCreatorOrAdmin && (
+              <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl bg-[var(--green-light)] px-5 py-3 shadow-soft">
+                <p className="text-sm font-semibold text-[var(--text)]">
+                  You have free uploads (creator or admin).
+                </p>
+                <QuotaCard
+                  quota={quota}
+                  isCreatorOrAdmin={true}
+                  onPurchaseComplete={refetchEvents}
+                  showTestCheckout
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* Calendar — fills remaining viewport */}
+      <section className="flex flex-1 flex-col min-h-0 rounded-2xl bg-[var(--surface)] shadow-soft min-w-0 overflow-hidden">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-[var(--divider)] px-3 py-2 sm:px-4">
+          <h2 className="text-base sm:text-lg font-bold text-[var(--text)] truncate min-w-0">
+            {t.calendar}
+          </h2>
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
+            <label className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-[var(--muted)]">{t.filterByCourse}</span>
+              <select
+                value={courseFilterId}
+                onChange={(e) => setCourseFilterId(e.target.value)}
+                className="rounded-xl border border-[var(--divider)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--text)] shadow-soft"
+              >
+                <option value="all">{t.allCourses}</option>
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                    {c.code ? ` (${c.code})` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {courseFilterId !== "all" && (
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmCourseId(courseFilterId)}
+                className="rounded-xl bg-red-500 px-3 py-2 text-sm font-bold text-white hover:bg-red-600"
+              >
+                {t.deleteCourse}
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="flex-1 min-h-0 overflow-auto">
+          <CalendarView events={filteredEvents} courseNames={courseNames} courseColors={courseColors} onUpdate={refetchEvents} onDeleteEvent={handleDeleteEvent} onAddEvent={handleAddEvent} onUpdateEvent={handleUpdateEvent} />
+        </div>
+      </section>
 
       <ConfirmModal
         open={deleteConfirmCourseId !== null}

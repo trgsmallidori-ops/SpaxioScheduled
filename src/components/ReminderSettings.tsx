@@ -14,9 +14,11 @@ type ReminderSettingsProps = {
   userId: string;
   userEmail: string;
   onSaved?: () => void;
+  /** When true, form is expanded by default and collapse toggle is hidden (e.g. for navbar popover). */
+  defaultExpanded?: boolean;
 };
 
-export function ReminderSettings({ userId, userEmail, onSaved }: ReminderSettingsProps) {
+export function ReminderSettings({ userId, userEmail, onSaved, defaultExpanded = false }: ReminderSettingsProps) {
   const { t, locale } = useLocale();
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,7 +31,7 @@ export function ReminderSettings({ userId, userEmail, onSaved }: ReminderSetting
   const [weeks, setWeeks] = useState(0);
   const [customDays, setCustomDays] = useState(0);
   const [customWeeks, setCustomWeeks] = useState(0);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(!defaultExpanded);
 
   useEffect(() => {
     setEmail(userEmail);
@@ -148,21 +150,23 @@ export function ReminderSettings({ userId, userEmail, onSaved }: ReminderSetting
 
   return (
     <div className="rounded-xl border border-[var(--divider)] bg-[var(--bg)] overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setCollapsed((c) => !c)}
-        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left hover:bg-[var(--bg)]/80 transition-colors"
-        aria-expanded={!collapsed}
-      >
-        <span className="flex items-center gap-2">
-          <span className="text-xs font-bold text-[var(--text)]">🔔</span>
-          <span className="text-xs font-bold text-[var(--text)]">{t.remindMe}</span>
-        </span>
-        <span className="text-[var(--muted)] transition-transform duration-200" aria-hidden>
-          {collapsed ? "▼" : "▲"}
-        </span>
-      </button>
-      {!collapsed && (
+      {!defaultExpanded && (
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left hover:bg-[var(--bg)]/80 transition-colors"
+          aria-expanded={!collapsed}
+        >
+          <span className="flex items-center gap-2">
+            <span className="text-xs font-bold text-[var(--text)]">🔔</span>
+            <span className="text-xs font-bold text-[var(--text)]">{t.remindMe}</span>
+          </span>
+          <span className="text-[var(--muted)] transition-transform duration-200" aria-hidden>
+            {collapsed ? "▼" : "▲"}
+          </span>
+        </button>
+      )}
+      {(!collapsed || defaultExpanded) && (
         <form onSubmit={handleSave} className="border-t border-[var(--divider)] p-3 pt-2 space-y-2">
         <div>
           <label className="block text-xs font-semibold text-[var(--muted)]">{t.reminderEmail}</label>

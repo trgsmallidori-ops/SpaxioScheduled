@@ -5,8 +5,10 @@ import { usePathname } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { User } from "@supabase/supabase-js";
+import { Bell } from "lucide-react";
+import { ReminderSettings } from "@/components/ReminderSettings";
 
 export function Header() {
   const { t, locale, setLocale } = useLocale();
@@ -17,6 +19,19 @@ export function Header() {
   const [isCreator, setIsCreator] = useState(false);
   const [quota, setQuota] = useState<{ totalLeft: number; hasUpgraded: boolean } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [reminderOpen, setReminderOpen] = useState(false);
+  const reminderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!reminderOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (reminderRef.current && !reminderRef.current.contains(e.target as Node)) {
+        setReminderOpen(false);
+      }
+    }
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [reminderOpen]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -75,7 +90,34 @@ export function Header() {
     </Link>
   );
 
-  const navContent = (mobile: boolean) => (
+  const langButtons = (mobile: boolean) => (
+    <div className={`flex items-center gap-1 ${mobile ? "mb-4" : ""}`}>
+      <button
+        type="button"
+        onClick={() => setLocale("en")}
+        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+          locale === "en"
+            ? "bg-[var(--accent)] text-white"
+            : "text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] hover:text-[var(--text)]"
+        }`}
+      >
+        {t.english}
+      </button>
+      <button
+        type="button"
+        onClick={() => setLocale("fr")}
+        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+          locale === "fr"
+            ? "bg-[var(--accent)] text-white"
+            : "text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] hover:text-[var(--text)]"
+        }`}
+      >
+        {t.french}
+      </button>
+    </div>
+  );
+
+  const navContent = (mobile: boolean, includeLanguage = true) => (
     <>
       <button
         type="button"
@@ -86,14 +128,7 @@ export function Header() {
       >
         {theme === "dark" ? "☀️" : "🌙"}
       </button>
-      <select
-        value={locale}
-        onChange={(e) => setLocale(e.target.value as "en" | "fr")}
-        className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)]"
-      >
-        <option value="en">{t.english}</option>
-        <option value="fr">{t.french}</option>
-      </select>
+      {includeLanguage && langButtons(mobile)}
       {user ? (
         <>
           {!isCreator && !isAdmin && quota && (quota.totalLeft <= 0 || !quota.hasUpgraded) && (
@@ -157,8 +192,35 @@ export function Header() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            {navContent(false)}
+          <nav className="hidden md:flex items-center gap-4">
+            {navContent(false, false)}
+            {user && (
+              <div className="relative" ref={reminderRef}>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setReminderOpen((o) => !o); }}
+                  className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] hover:text-[var(--text)] transition"
+                  aria-label={t.remindMe}
+                  aria-expanded={reminderOpen}
+                >
+                  <Bell className="h-4 w-4" aria-hidden />
+                  <span>{t.remindMe}</span>
+                </button>
+                {reminderOpen && (
+                  <div className="absolute top-full right-0 mt-2 w-[min(320px,90vw)] z-50 rounded-xl border border-[var(--divider)] bg-[var(--surface)] shadow-soft-lg p-3">
+                    <ReminderSettings
+                      userId={user.id}
+                      userEmail={user.email ?? ""}
+                      defaultExpanded
+                      onSaved={() => setReminderOpen(false)}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="ml-auto flex items-center gap-1">
+              {langButtons(false)}
+            </div>
           </nav>
 
           {/* Mobile: hamburger */}
@@ -205,7 +267,7 @@ export function Header() {
             </button>
           </div>
           <nav className="flex flex-col gap-1 p-4 overflow-y-auto">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center justify-between gap-2 mb-4">
               <button
                 type="button"
                 onClick={toggleTheme}
@@ -214,15 +276,18 @@ export function Header() {
               >
                 {theme === "dark" ? "☀️" : "🌙"}
               </button>
-              <select
-                value={locale}
-                onChange={(e) => setLocale(e.target.value as "en" | "fr")}
-                className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] flex-1"
-              >
-                <option value="en">{t.english}</option>
-                <option value="fr">{t.french}</option>
-              </select>
+              {langButtons(true)}
             </div>
+            {user && (
+              <div className="mb-4 rounded-xl border border-[var(--divider)] bg-[var(--bg)] overflow-hidden">
+                <ReminderSettings
+                  userId={user.id}
+                  userEmail={user.email ?? ""}
+                  defaultExpanded
+                  onSaved={closeMenu}
+                />
+              </div>
+            )}
             {user ? (
               <>
                 {!isCreator && !isAdmin && quota && (quota.totalLeft <= 0 || !quota.hasUpgraded) && (
