@@ -21,68 +21,66 @@ export default function HomePage() {
 
   return (
     <div className="w-full max-w-full min-h-[calc(100vh-4rem)] bg-[var(--bg)] overflow-x-hidden">
-      <section className="w-full border-b border-[var(--border)] bg-[var(--surface)] px-4 py-10 sm:px-6 sm:py-16 md:py-20">
-        <div className="mx-auto max-w-[1600px] flex flex-col md:flex-row md:items-center md:justify-between gap-8 md:gap-10">
-          <div className="flex-1 min-w-0">
-          <h1 className="text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-4xl md:text-5xl">
-            {t.siteName}
-          </h1>
-          <p className="mt-4 max-w-xl text-lg text-[var(--text-secondary)]">
-            {t.tagline}
-          </p>
-          <p className="mt-2 max-w-2xl text-[var(--muted)]">
-            {t.uploadSyllabusDesc}
-          </p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            {user ? (
-              <Link
-                href="/dashboard"
-                className="rounded-2xl bg-[var(--accent)] px-8 py-4 text-base font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)]"
-              >
-                {t.goToDashboard}
-              </Link>
-            ) : (
-              <>
+      <section className="relative w-full min-h-screen overflow-hidden">
+        <HeroImageCarousel fullScreen />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60 pointer-events-none" aria-hidden />
+        <div className="relative z-10 flex min-h-screen flex-col justify-center px-4 py-16 sm:px-6 md:py-20">
+          <div className="mx-auto max-w-[1600px] w-full max-w-2xl">
+            <h1 className="text-3xl font-extrabold tracking-tight text-white drop-shadow-md sm:text-4xl md:text-5xl">
+              {t.siteName}
+            </h1>
+            <p className="mt-4 max-w-xl text-lg text-white/95 drop-shadow">
+              {t.tagline}
+            </p>
+            <p className="mt-2 max-w-2xl text-white/80 drop-shadow">
+              {t.uploadSyllabusDesc}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              {user ? (
                 <Link
-                  href="/signup"
+                  href="/dashboard"
                   className="rounded-2xl bg-[var(--accent)] px-8 py-4 text-base font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)]"
                 >
-                  {t.getStarted}
+                  {t.goToDashboard}
                 </Link>
-                <Link
-                  href="/login"
-                  className="rounded-2xl shadow-soft bg-transparent px-8 py-4 text-base font-bold text-[var(--accent)] no-underline transition hover:bg-[var(--accent-light)]"
-                >
-                  {t.login}
-                </Link>
-              </>
-            )}
-          </div>
-
-          <div className="mt-10 flex flex-wrap items-center gap-6 rounded-2xl bg-[var(--accent-light)]/50 shadow-soft px-8 py-6">
-            <span className="text-xl font-bold text-[var(--text)]">
-              {t.freeUploads}
-            </span>
-            <span className="text-2xl text-[var(--accent)]" aria-hidden>→</span>
-            <span className="text-xl font-bold text-[var(--accent)]">
-              {t.thenPay}
-            </span>
-            <p className="w-full text-sm text-[var(--muted)] sm:w-auto">
-              {t.pricingSubline}
-            </p>
-          </div>
-          <div className="mt-6 flex flex-col items-start gap-1">
-            <Link
-              href={user ? "/dashboard" : "/signup"}
-              className="inline-block rounded-2xl bg-[var(--accent)] px-8 py-4 text-base font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)]"
-            >
-              {t.upgrade}
-            </Link>
-            <span className="text-xs text-[var(--muted)]">{t.upgradeSecureNote}</span>
-          </div>
-          </div>
-          <div className="flex-shrink-0 md:w-[28rem]">
-            <HeroImageCarousel />
+              ) : (
+                <>
+                  <Link
+                    href="/signup"
+                    className="rounded-2xl bg-[var(--accent)] px-8 py-4 text-base font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)]"
+                  >
+                    {t.getStarted}
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="rounded-2xl shadow-soft bg-white/20 backdrop-blur px-8 py-4 text-base font-bold text-white no-underline transition hover:bg-white/30"
+                  >
+                    {t.login}
+                  </Link>
+                </>
+              )}
+            </div>
+            <div className="mt-10 flex flex-wrap items-center gap-6 rounded-2xl bg-white/15 backdrop-blur shadow-soft px-8 py-6">
+              <span className="text-xl font-bold text-white">
+                {t.freeUploads}
+              </span>
+              <span className="text-2xl text-white/90" aria-hidden>→</span>
+              <span className="text-xl font-bold text-[var(--accent)]">
+                {t.thenPay}
+              </span>
+              <p className="w-full text-sm text-white/80 sm:w-auto">
+                {t.pricingSubline}
+              </p>
+            </div>
+            <div className="mt-6 flex flex-col items-start gap-1">
+              <Link
+                href={user ? "/dashboard" : "/signup"}
+                className="inline-block rounded-2xl bg-[var(--accent)] px-8 py-4 text-base font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)]"
+              >
+                {t.upgrade}
+              </Link>
+              <span className="text-xs text-white/70">{t.upgradeSecureNote}</span>
+            </div>
           </div>
         </div>
       </section>
@@ -116,17 +114,18 @@ export default function HomePage() {
       <section className="w-full border-t border-[var(--divider)] bg-[var(--surface)] px-4 py-10 sm:px-6 sm:py-14" aria-labelledby="seo-heading">
         <div className="mx-auto max-w-[1600px]">
           <h2 id="seo-heading" className="text-xl sm:text-2xl font-bold text-[var(--text)]">
-            The smart course outline calendar and school calendar for students
+            {t.seoHeading}
           </h2>
           <div className="mt-6 grid gap-6 text-[var(--text-secondary)] sm:grid-cols-2">
             <p className="text-base leading-relaxed">
-              SpaxioScheduled is an <strong>AI school calendar</strong> that turns your syllabi into one unified <strong>course outline calendar</strong>. 
-              Upload your PDF or Word syllabus and get a <strong>school calendar</strong> with all assignments, tests, exams, and class times in one place—no more juggling multiple <strong>course calendar</strong> tabs or paper planners.
+              {t.seoParagraph1.split(/\*\*(.+?)\*\*/g).map((part, i) =>
+                i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+              )}
             </p>
             <p className="text-base leading-relaxed">
-              Whether you need a <strong>syllabus calendar</strong>, <strong>class schedule planner</strong>, or <strong>assignment calendar</strong> for college or university, 
-              our <strong>academic calendar</strong> tool keeps your <strong>student calendar</strong> up to date. Get reminders for your <strong>exam calendar</strong> and deadlines, 
-              and ask the AI assistant about your day—the best <strong>syllabus planner</strong> for your <strong>college calendar</strong> or <strong>university calendar</strong>.
+              {t.seoParagraph2.split(/\*\*(.+?)\*\*/g).map((part, i) =>
+                i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+              )}
             </p>
           </div>
         </div>

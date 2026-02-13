@@ -44,7 +44,11 @@ function PlaceholderSlide() {
   );
 }
 
-export function HeroImageCarousel() {
+type HeroImageCarouselProps = {
+  fullScreen?: boolean;
+};
+
+export function HeroImageCarousel({ fullScreen = false }: HeroImageCarouselProps) {
   const images = HERO_IMAGES_ORDERED;
   const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState<Record<number, boolean>>({});
@@ -64,16 +68,20 @@ export function HeroImageCarousel() {
 
   const allFailed = images.length === Object.keys(failed).length;
 
+  const containerClass = fullScreen
+    ? "absolute inset-0 w-full h-full overflow-hidden"
+    : "relative w-full max-w-md aspect-[4/3] rounded-2xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg)] shadow-soft";
+
   if (allFailed) {
     return (
-      <div className="relative w-full max-w-md aspect-[4/3] rounded-2xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg)] shadow-soft">
+      <div className={containerClass}>
         <PlaceholderSlide />
       </div>
     );
   }
 
   return (
-    <div className="relative w-full max-w-md aspect-[4/3] rounded-2xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg)] shadow-soft">
+    <div className={containerClass}>
       {images.map((item, i) => (
         <div
           key={`${item.src}-${i}`}
@@ -92,13 +100,13 @@ export function HeroImageCarousel() {
               alt={item.alt}
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 100vw, 28rem"
+              sizes={fullScreen ? "100vw" : "(max-width: 768px) 100vw, 28rem"}
               onError={() => handleError(i)}
             />
           )}
         </div>
       ))}
-      <div className="absolute bottom-2 left-0 right-0 z-10 flex justify-center gap-1.5">
+      <div className={`absolute left-0 right-0 z-10 flex justify-center gap-1.5 ${fullScreen ? "bottom-6" : "bottom-2"}`}>
         {images.map((_, i) => (
           <button
             key={i}

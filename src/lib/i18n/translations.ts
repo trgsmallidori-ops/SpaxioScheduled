@@ -185,6 +185,9 @@ export const translations = {
     resendVerificationSent: "Verification email sent. Check your inbox.",
     resendVerificationError: "Could not resend. Try again or sign in if you already verified.",
     confirmLinkInvalid: "That confirmation link expired or is invalid. Try signing in below, or request a new verification email from the sign-up page.",
+    seoHeading: "The smart course outline calendar and school calendar for students",
+    seoParagraph1: "SpaxioScheduled is an **AI school calendar** that turns your syllabi into one unified **course outline calendar**. Upload your PDF or Word syllabus and get a **school calendar** with all assignments, tests, exams, and class times in one place—no more juggling multiple **course calendar** tabs or paper planners.",
+    seoParagraph2: "Whether you need a **syllabus calendar**, **class schedule planner**, or **assignment calendar** for college or university, our **academic calendar** tool keeps your **student calendar** up to date. Get reminders for your **exam calendar** and deadlines, and ask the AI assistant about your day—the best **syllabus planner** for your **college calendar** or **university calendar**.",
   },
   fr: {
     siteName: "SpaxioScheduled",
@@ -372,6 +375,9 @@ export const translations = {
     resendVerificationSent: "Courriel de vérification envoyé. Vérifiez votre boîte de réception.",
     resendVerificationError: "Impossible de renvoyer. Réessayez ou connectez-vous si vous avez déjà vérifié.",
     confirmLinkInvalid: "Ce lien de confirmation a expiré ou est invalide. Essayez de vous connecter ci-dessous ou demandez un nouveau courriel de vérification depuis la page d'inscription.",
+    seoHeading: "Le calendrier de cours et calendrier scolaire intelligent pour les étudiants",
+    seoParagraph1: "SpaxioScheduled est un **calendrier scolaire IA** qui transforme vos syllabi en un seul **calendrier de cours**. Téléversez votre syllabus PDF ou Word et obtenez un **calendrier scolaire** avec tous les travaux, tests, examens et horaires de cours en un seul endroit—plus besoin de jongler entre plusieurs onglets ou agendas papier.",
+    seoParagraph2: "Que vous ayez besoin d'un **calendrier de syllabus**, d'un **planificateur d'horaire** ou d'un **calendrier de travaux** pour le collège ou l'université, notre outil de **calendrier académique** garde votre **calendrier étudiant** à jour. Recevez des rappels pour vos examens et échéances, et demandez à l'assistant IA votre journée—le meilleur **planificateur de syllabus** pour votre **calendrier universitaire**.",
   },
 } as const;
 
