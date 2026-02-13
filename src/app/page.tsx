@@ -25,14 +25,14 @@ export default function HomePage() {
         <HeroImageCarousel fullScreen />
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60 pointer-events-none" aria-hidden />
         <div className="relative z-10 flex min-h-screen flex-col justify-center px-4 py-16 sm:px-6 md:py-20">
-          <div className="mx-auto max-w-[1600px] w-full max-w-2xl">
-            <h1 className="text-3xl font-extrabold tracking-tight text-white drop-shadow-md sm:text-4xl md:text-5xl">
+          <div className="mx-auto max-w-[1600px] w-full max-w-2xl rounded-2xl bg-black/50 backdrop-blur-md p-6 shadow-xl sm:p-8 md:p-10">
+            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl">
               {t.siteName}
             </h1>
-            <p className="mt-4 max-w-xl text-lg text-white/95 drop-shadow">
+            <p className="mt-4 max-w-xl text-lg text-white/95">
               {t.tagline}
             </p>
-            <p className="mt-2 max-w-2xl text-white/80 drop-shadow">
+            <p className="mt-2 max-w-2xl text-white/80">
               {t.uploadSyllabusDesc}
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
