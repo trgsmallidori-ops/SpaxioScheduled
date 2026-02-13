@@ -360,12 +360,21 @@ export function CalendarView({
                 <div
                   key={day.toISOString()}
                   className={`flex min-h-[100px] sm:min-h-[160px] flex-col rounded-lg sm:rounded-xl bg-[var(--surface)] p-2 sm:p-3 shadow-calendar-cell ${
-                    isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""
+                    isToday ? "ring-2 ring-[var(--accent)] bg-[var(--accent-light)]" : ""
                   }`}
                 >
                   <div className="flex shrink-0 items-center justify-between gap-1">
-                    <p className={`font-bold text-xs sm:text-sm truncate min-w-0 ${isToday ? "text-[var(--accent)]" : "text-[var(--text)]"}`}>
-                      {format(day, "d")} {dayLabels[day.getDay() === 0 ? 6 : day.getDay() - 1]}
+                    <p className={`font-bold text-xs sm:text-sm truncate min-w-0 flex items-center gap-1.5 ${isToday ? "" : "text-[var(--text)]"}`}>
+                      {isToday ? (
+                        <>
+                          <span className="inline-flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white text-xs sm:text-sm font-bold">
+                            {format(day, "d")}
+                          </span>
+                          <span className="text-[var(--accent)] font-bold">{dayLabels[day.getDay() === 0 ? 6 : day.getDay() - 1]}</span>
+                        </>
+                      ) : (
+                        <>{format(day, "d")} {dayLabels[day.getDay() === 0 ? 6 : day.getDay() - 1]}</>
+                      )}
                     </p>
                     {onAddEvent && (
                       <button
@@ -425,18 +434,24 @@ export function CalendarView({
                   key={day.toISOString()}
                   className={`flex min-h-[100px] sm:min-h-[150px] flex-col rounded-lg sm:rounded-xl bg-[var(--surface)] p-2 sm:p-3 shadow-calendar-cell ${
                     !isCurrentMonth ? "opacity-60" : ""
-                  } ${isToday ? "ring-1 ring-[var(--accent)] bg-[var(--accent-light)]" : ""}`}
+                  } ${isToday ? "ring-2 ring-[var(--accent)] bg-[var(--accent-light)]" : ""}`}
                 >
                   <div className="flex shrink-0 items-center justify-between gap-1">
                     <button
                       type="button"
                       onClick={() => setSelectedDayForDetail(dayKey)}
-                      className={`min-w-0 flex-1 rounded px-1.5 py-0.5 text-left font-semibold hover:bg-[var(--border-subtle)] ${
-                        isToday ? "font-bold text-[var(--accent)]" : "text-[var(--text)]"
+                      className={`min-w-0 flex-1 flex items-center gap-1.5 rounded px-1.5 py-0.5 text-left font-semibold hover:bg-[var(--border-subtle)] ${
+                        isToday ? "" : "text-[var(--text)]"
                       }`}
                       title={t.viewDay}
                     >
-                      {format(day, "d")}
+                      {isToday ? (
+                        <span className="inline-flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white text-xs sm:text-sm font-bold">
+                          {format(day, "d")}
+                        </span>
+                      ) : (
+                        format(day, "d")
+                      )}
                     </button>
                     {onAddEvent && (
                       <button
@@ -524,8 +539,8 @@ export function CalendarView({
                       return (
                         <div
                           key={day.toISOString()}
-                          className={`rounded py-0.5 text-center ${
-                            !isThisMonth ? "invisible" : isToday ? "font-bold text-[var(--accent)]" : "text-[var(--text)]"
+                          className={`rounded py-0.5 text-center flex items-center justify-center gap-0.5 ${
+                            !isThisMonth ? "invisible" : isToday ? "font-bold" : "text-[var(--text)]"
                           }`}
                           title={
                             dayEvents.length > 0
@@ -533,9 +548,17 @@ export function CalendarView({
                               : undefined
                           }
                         >
-                          {format(day, "d")}
-                          {dayEvents.length > 0 && (
-                            <span className="ml-0.5 text-[var(--accent)]">•</span>
+                          {isToday ? (
+                            <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[9px] font-bold text-white">
+                              {format(day, "d")}
+                            </span>
+                          ) : (
+                            <>
+                              {format(day, "d")}
+                              {dayEvents.length > 0 && (
+                                <span className="ml-0.5 text-[var(--accent)]">•</span>
+                              )}
+                            </>
                           )}
                         </div>
                       );
