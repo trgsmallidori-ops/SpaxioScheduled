@@ -86,7 +86,7 @@ export default function RootLayout({
           <ConsentProvider>
             <LocaleProvider>
               <Header />
-              <main className="w-full max-w-full flex-1 flex flex-col min-h-0 bg-[var(--bg)] overflow-x-hidden">
+              <main className="w-full max-w-full flex-1 flex flex-col min-h-0 min-h-screen bg-[var(--bg)] overflow-x-hidden">
                 {children}
               </main>
               <Footer />

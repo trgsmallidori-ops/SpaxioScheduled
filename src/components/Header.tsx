@@ -143,7 +143,7 @@ export function Header() {
               <span className="text-[10px] text-[var(--muted)] mt-0.5 leading-tight">{t.upgradeSecureNote}</span>
             </div>
           )}
-          {navLink("/dashboard", t.dashboard, pathname === "/dashboard", false, mobile)}
+          {navLink("/dashboard", t.calendar, pathname === "/dashboard", false, mobile)}
           {navLink("/dashboard/courses", t.byCourse, pathname === "/dashboard/courses", false, mobile)}
           {navLink("/account", t.myAccount, pathname === "/account", false, mobile)}
           {isCreator && navLink("/creator", t.creatorPortal, pathname === "/creator", true, mobile)}

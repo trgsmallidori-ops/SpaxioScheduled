@@ -158,7 +158,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="relative flex flex-1 w-full max-w-full flex-col min-h-0 bg-[var(--bg)]">
+    <div className="relative flex w-full max-w-full flex-col bg-[var(--bg)]">
       {/* Alerts overlay — above calendar so calendar stays full height */}
       <div className="absolute top-3 left-3 right-3 z-20 flex flex-col gap-2 pointer-events-none sm:left-6 sm:right-6">
         {success && (
@@ -178,8 +178,8 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Calendar — always full screen */}
-      <section className="flex flex-1 flex-col min-h-0 rounded-none sm:rounded-2xl bg-[var(--surface)] shadow-soft min-w-0 overflow-hidden mx-0 sm:mx-3 sm:mt-4 sm:mb-4">
+      {/* Calendar — part of page flow; page scrolls as one */}
+      <section className="flex flex-col rounded-none sm:rounded-2xl bg-[var(--surface)] shadow-soft min-w-0 mx-0 sm:mx-3 sm:mt-4 sm:mb-4">
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-[var(--divider)] px-3 py-2 sm:px-4">
           <h2 className="text-base sm:text-lg font-bold text-[var(--text)] truncate min-w-0">
             {t.calendar}
@@ -212,7 +212,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-        <div className="flex-1 min-h-0 overflow-auto">
+        <div>
           <CalendarView events={filteredEvents} courseNames={courseNames} courseColors={courseColors} onUpdate={refetchEvents} onDeleteEvent={handleDeleteEvent} onAddEvent={handleAddEvent} onUpdateEvent={handleUpdateEvent} />
         </div>
       </section>
