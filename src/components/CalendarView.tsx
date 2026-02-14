@@ -152,7 +152,7 @@ export function CalendarView({
     viewMode === "day"
       ? format(current, "EEEE, MMMM do yyyy")
       : viewMode === "week"
-        ? `${format(startOfWeek(current, { weekStartsOn: 1 }), "MMM d")} – ${format(endOfWeek(current, { weekStartsOn: 1 }), "MMM d, yyyy")}`
+        ? `${format(startOfWeek(current, { weekStartsOn: 0 }), "MMM d")} – ${format(endOfWeek(current, { weekStartsOn: 0 }), "MMM d, yyyy")}`
         : viewMode === "month"
           ? format(current, "MMMM yyyy")
           : format(current, "yyyy");
@@ -220,7 +220,7 @@ export function CalendarView({
     { mode: "year", label: t.viewYear },
   ];
 
-  const dayLabels = [t.mon, t.tue, t.wed, t.thu, t.fri, t.sat, t.sun];
+  const dayLabels = [t.sun, t.mon, t.tue, t.wed, t.thu, t.fri, t.sat];
 
   function eventLabel(e: CalendarEvent) {
     const courseName = e.course_id ? courseNames[e.course_id] : null;
@@ -347,8 +347,8 @@ export function CalendarView({
 
       {/* Week view */}
       {viewMode === "week" && (() => {
-        const weekStart = startOfWeek(current, { weekStartsOn: 1 });
-        const weekEnd = endOfWeek(current, { weekStartsOn: 1 });
+        const weekStart = startOfWeek(current, { weekStartsOn: 0 });
+        const weekEnd = endOfWeek(current, { weekStartsOn: 0 });
         const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
         return (
           <div className="overflow-x-auto -mx-2 sm:mx-0">
@@ -370,10 +370,10 @@ export function CalendarView({
                           <span className="inline-flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white text-xs sm:text-sm font-bold">
                             {format(day, "d")}
                           </span>
-                          <span className="text-[var(--accent)] font-bold">{dayLabels[day.getDay() === 0 ? 6 : day.getDay() - 1]}</span>
+                          <span className="text-[var(--accent)] font-bold">{dayLabels[day.getDay()]}</span>
                         </>
                       ) : (
-                        <>{format(day, "d")} {dayLabels[day.getDay() === 0 ? 6 : day.getDay() - 1]}</>
+                        <>{format(day, "d")} {dayLabels[day.getDay()]}</>
                       )}
                     </p>
                     {onAddEvent && (
@@ -407,8 +407,8 @@ export function CalendarView({
       {viewMode === "month" && (() => {
         const monthStart = startOfMonth(current);
         const monthEnd = endOfMonth(current);
-        const calStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-        const calEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+        const calStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+        const calEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
         const days: Date[] = [];
         let d = calStart;
         while (d <= calEnd) {
@@ -507,8 +507,8 @@ export function CalendarView({
             {months.map((month) => {
               const monthStart = startOfMonth(month);
               const monthEnd = endOfMonth(month);
-              const calStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-              const calEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+              const calStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+              const calEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
               const days: Date[] = [];
               let d = calStart;
               while (d <= calEnd) {
