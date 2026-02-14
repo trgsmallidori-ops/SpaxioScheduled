@@ -27,7 +27,7 @@ export default function DashboardPage() {
   const [canceled, setCanceled] = useState(false);
   const [deleteConfirmCourseId, setDeleteConfirmCourseId] = useState<string | null>(null);
   const [deleteCourseLoading, setDeleteCourseLoading] = useState(false);
-  const [syllabusCollapsed, setSyllabusCollapsed] = useState(true);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -158,96 +158,28 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-1 w-full max-w-full flex-col gap-2 sm:gap-3 bg-[var(--bg)] px-3 py-4 sm:px-6 sm:py-6 min-w-0 min-h-0">
-      {success && (
-        <div className="rounded-2xl bg-[var(--green-light)] px-5 py-3 text-base font-semibold text-[var(--text)] shadow-soft">
-          Payment successful. You have 10 more uploads.
-        </div>
-      )}
-      {canceled && (
-        <div className="rounded-2xl bg-[var(--orange-light)] px-5 py-3 text-base font-semibold text-[var(--text)] shadow-soft">
-          Payment canceled.
-        </div>
-      )}
-      {!isCreatorOrAdmin && quota && (quota.paid_uploads_purchased ?? 0) - (quota.paid_uploads_used ?? 0) + Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0)) <= 0 && (
-        <div className="rounded-2xl border-2 border-[var(--accent)] bg-[var(--accent-light)]/50 px-5 py-4 text-base font-semibold text-[var(--text)] shadow-soft">
-          <p>{t.outOfUploads}</p>
-          <p className="mt-1 text-sm font-medium text-[var(--muted)]">{t.outOfUploadsMessage}</p>
-        </div>
-      )}
-
-      {/* Collapsible syllabus upload — above calendar, compact so calendar is in view */}
-      <section className="shrink-0 rounded-xl bg-[var(--surface)] shadow-soft min-w-0 overflow-hidden">
-        <button
-          type="button"
-          className="flex w-full flex-wrap items-center justify-between gap-2 border-b border-[var(--divider)] px-3 py-2 sm:px-4 text-left hover:bg-[var(--bg)]/50 transition-colors"
-          onClick={() => setSyllabusCollapsed((c) => !c)}
-          aria-expanded={!syllabusCollapsed}
-        >
-          <h2 className="text-sm sm:text-base font-bold text-[var(--text)]">
-            {t.uploadSyllabus}
-          </h2>
-          <span className="text-sm text-[var(--muted)]" aria-hidden>
-            {syllabusCollapsed ? "▼" : "▲"}
-          </span>
-        </button>
-        {!syllabusCollapsed && (
-          <div className="p-3 sm:p-4">
-            <p className="text-xs sm:text-sm text-[var(--muted)]">
-              {t.uploadSyllabusDesc}
-            </p>
-            {!isCreatorOrAdmin && quota && (quota.paid_uploads_purchased ?? 0) - (quota.paid_uploads_used ?? 0) + Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0)) <= 0 ? (
-              <>
-                <div className="mt-3 rounded-lg border-2 border-[var(--accent)] bg-[var(--accent-light)]/30 px-3 py-2">
-                  <p className="text-sm font-semibold text-[var(--text)]">{t.outOfUploads}</p>
-                  <p className="mt-0.5 text-xs text-[var(--muted)]">{t.outOfUploadsMessage}</p>
-                </div>
-                <div className="mt-3">
-                  <QuotaCard
-                    quota={quota}
-                    isCreatorOrAdmin={false}
-                    onPurchaseComplete={refetchEvents}
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="mt-3">
-                  <UploadSyllabus onSuccess={refetchEvents} compact />
-                </div>
-                <div className="mt-3">
-                  <AddClassTime onSave={refetchEvents} compact />
-                </div>
-                {!isCreatorOrAdmin && (
-                  <div className="mt-3">
-                    <QuotaCard
-                      quota={quota}
-                      isCreatorOrAdmin={false}
-                      onPurchaseComplete={refetchEvents}
-                    />
-                  </div>
-                )}
-              </>
-            )}
-            {isCreatorOrAdmin && (
-              <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-[var(--green-light)] px-3 py-2 shadow-soft">
-                <p className="text-xs font-semibold text-[var(--text)]">
-                  You have free uploads (creator or admin).
-                </p>
-                <QuotaCard
-                  quota={quota}
-                  isCreatorOrAdmin={true}
-                  onPurchaseComplete={refetchEvents}
-                  showTestCheckout
-                />
-              </div>
-            )}
+    <div className="relative flex flex-1 w-full max-w-full flex-col min-h-0 bg-[var(--bg)]">
+      {/* Alerts overlay — above calendar so calendar stays full height */}
+      <div className="absolute top-3 left-3 right-3 z-20 flex flex-col gap-2 pointer-events-none sm:left-6 sm:right-6">
+        {success && (
+          <div className="rounded-xl bg-[var(--green-light)] px-4 py-2 text-sm font-semibold text-[var(--text)] shadow-soft pointer-events-auto">
+            Payment successful. You have 10 more uploads.
           </div>
         )}
-      </section>
+        {canceled && (
+          <div className="rounded-xl bg-[var(--orange-light)] px-4 py-2 text-sm font-semibold text-[var(--text)] shadow-soft pointer-events-auto">
+            Payment canceled.
+          </div>
+        )}
+        {!isCreatorOrAdmin && quota && (quota.paid_uploads_purchased ?? 0) - (quota.paid_uploads_used ?? 0) + Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0)) <= 0 && (
+          <div className="rounded-xl border-2 border-[var(--accent)] bg-[var(--accent-light)]/80 px-4 py-2 text-sm font-semibold text-[var(--text)] shadow-soft pointer-events-auto">
+            {t.outOfUploads} — {t.outOfUploadsMessage}
+          </div>
+        )}
+      </div>
 
-      {/* Calendar — fills remaining viewport */}
-      <section className="flex flex-1 flex-col min-h-0 rounded-2xl bg-[var(--surface)] shadow-soft min-w-0 overflow-hidden">
+      {/* Calendar — always full screen */}
+      <section className="flex flex-1 flex-col min-h-0 rounded-none sm:rounded-2xl bg-[var(--surface)] shadow-soft min-w-0 overflow-hidden mx-0 sm:mx-3 sm:mt-4 sm:mb-4">
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-[var(--divider)] px-3 py-2 sm:px-4">
           <h2 className="text-base sm:text-lg font-bold text-[var(--text)] truncate min-w-0">
             {t.calendar}
@@ -284,6 +216,98 @@ export default function DashboardPage() {
           <CalendarView events={filteredEvents} courseNames={courseNames} courseColors={courseColors} onUpdate={refetchEvents} onDeleteEvent={handleDeleteEvent} onAddEvent={handleAddEvent} onUpdateEvent={handleUpdateEvent} />
         </div>
       </section>
+
+      {/* Prominent floating Upload syllabus button */}
+      <button
+        type="button"
+        onClick={() => setUploadModalOpen(true)}
+        className="fixed bottom-5 right-5 z-30 flex items-center gap-2 rounded-2xl bg-[var(--accent)] px-5 py-3.5 text-base font-bold text-white shadow-lg hover:bg-[var(--accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-[var(--bg)] sm:bottom-6 sm:right-6 sm:px-6 sm:py-4 sm:text-lg"
+        aria-label={t.uploadSyllabus}
+      >
+        <span className="text-xl sm:text-2xl" aria-hidden>↑</span>
+        <span>{t.uploadSyllabus}</span>
+      </button>
+
+      {/* Upload syllabus modal */}
+      {uploadModalOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="upload-modal-title"
+          onClick={() => setUploadModalOpen(false)}
+        >
+          <div
+            className="my-8 w-full max-w-lg rounded-2xl bg-[var(--surface)] shadow-soft-lg border border-[var(--border-subtle)] max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[var(--divider)] px-4 py-3 sm:px-6">
+              <h2 id="upload-modal-title" className="text-lg font-bold text-[var(--text)]">
+                {t.uploadSyllabus}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setUploadModalOpen(false)}
+                className="rounded-xl p-2 text-[var(--muted)] hover:bg-[var(--bg)] hover:text-[var(--text)] transition-colors"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">
+              <p className="text-sm text-[var(--muted)]">
+                {t.uploadSyllabusDesc}
+              </p>
+              {!isCreatorOrAdmin && quota && (quota.paid_uploads_purchased ?? 0) - (quota.paid_uploads_used ?? 0) + Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0)) <= 0 ? (
+                <>
+                  <div className="mt-4 rounded-xl border-2 border-[var(--accent)] bg-[var(--accent-light)]/30 px-4 py-3">
+                    <p className="font-semibold text-[var(--text)]">{t.outOfUploads}</p>
+                    <p className="mt-1 text-sm text-[var(--muted)]">{t.outOfUploadsMessage}</p>
+                  </div>
+                  <div className="mt-4">
+                    <QuotaCard
+                      quota={quota}
+                      isCreatorOrAdmin={false}
+                      onPurchaseComplete={refetchEvents}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mt-4">
+                    <UploadSyllabus onSuccess={refetchEvents} />
+                  </div>
+                  <div className="mt-4">
+                    <AddClassTime onSave={refetchEvents} />
+                  </div>
+                  {!isCreatorOrAdmin && (
+                    <div className="mt-4">
+                      <QuotaCard
+                        quota={quota}
+                        isCreatorOrAdmin={false}
+                        onPurchaseComplete={refetchEvents}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+              {isCreatorOrAdmin && (
+                <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl bg-[var(--green-light)] px-4 py-3 shadow-soft">
+                  <p className="text-sm font-semibold text-[var(--text)]">
+                    You have free uploads (creator or admin).
+                  </p>
+                  <QuotaCard
+                    quota={quota}
+                    isCreatorOrAdmin={true}
+                    onPurchaseComplete={refetchEvents}
+                    showTestCheckout
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <ConfirmModal
         open={deleteConfirmCourseId !== null}
