@@ -23,8 +23,10 @@ function emptyBlock(start = "09:00", end = "10:00"): TimeBlock {
 
 export function UploadSyllabus({
   onSuccess,
+  compact = false,
 }: {
   onSuccess: () => void;
+  compact?: boolean;
 }) {
   const { t } = useLocale();
   const [files, setFiles] = useState<File[]>([]);
@@ -256,12 +258,12 @@ export function UploadSyllabus({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-5">
+    <form onSubmit={handleSubmit} className={compact ? "mt-0" : "mt-5"}>
       <div
         role="button"
         tabIndex={0}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") inputRef.current?.click(); }}
-        className="min-h-[140px] cursor-pointer rounded-2xl border border-dashed border-[var(--accent)]/40 bg-[var(--accent-light)]/50 p-8 text-center transition hover:border-[var(--accent-hover)] hover:bg-[var(--accent-light)]"
+        className={`cursor-pointer rounded-xl border border-dashed border-[var(--accent)]/40 bg-[var(--accent-light)]/50 text-center transition hover:border-[var(--accent-hover)] hover:bg-[var(--accent-light)] ${compact ? "min-h-[72px] p-4" : "min-h-[140px] rounded-2xl p-8"}`}
         onClick={() => inputRef.current?.click()}
       >
         <input
@@ -276,13 +278,13 @@ export function UploadSyllabus({
             if (list?.length) setFiles(Array.from(list));
           }}
         />
-        <div className="mb-2 text-4xl">📄</div>
+        <div className={compact ? "mb-0.5 text-2xl" : "mb-2 text-4xl"}>📄</div>
         {files.length > 0 ? (
-          <p className="text-base font-bold text-[var(--text)]">
+          <p className={compact ? "text-sm font-bold text-[var(--text)]" : "text-base font-bold text-[var(--text)]"}>
             {files.length === 1 ? files[0].name : `${files.length} files selected`}
           </p>
         ) : (
-          <p className="text-base font-semibold text-[var(--muted)]">{t.dragDrop}</p>
+          <p className={compact ? "text-sm font-semibold text-[var(--muted)]" : "text-base font-semibold text-[var(--muted)]"}>{t.dragDrop}</p>
         )}
       </div>
       {uploadProgress && (
@@ -298,12 +300,12 @@ export function UploadSyllabus({
       <button
         type="submit"
         disabled={files.length === 0 || loading}
-        className="mt-5 rounded-xl bg-[var(--accent)] px-8 py-3.5 text-base font-bold text-white transition hover:bg-[var(--accent-hover)] disabled:opacity-50"
+        className={compact ? "mt-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--accent-hover)] disabled:opacity-50" : "mt-5 rounded-xl bg-[var(--accent)] px-8 py-3.5 text-base font-bold text-white transition hover:bg-[var(--accent-hover)] disabled:opacity-50"}
       >
         {loading ? t.parsing : t.upload}
       </button>
       {parsed && !needsTermDates && !needsClassTime && (
-        <div className="mt-5 rounded-xl bg-[var(--green-light)] shadow-soft p-4 text-sm font-semibold text-[var(--text)]">
+        <div className={compact ? "mt-2 rounded-lg bg-[var(--green-light)] shadow-soft p-2 text-xs font-semibold text-[var(--text)]" : "mt-5 rounded-xl bg-[var(--green-light)] shadow-soft p-4 text-sm font-semibold text-[var(--text)]"}>
           <p>Course saved.</p>
           {parsed.classTime || parsed.classSchedule ? (
             <p>Class time added to calendar.</p>
@@ -314,14 +316,14 @@ export function UploadSyllabus({
       )}
 
       {needsTermDates && (
-        <div className="mt-5 rounded-xl bg-[var(--orange-light)] shadow-soft p-5">
+        <div className={compact ? "mt-2 rounded-lg bg-[var(--orange-light)] shadow-soft p-3" : "mt-5 rounded-xl bg-[var(--orange-light)] shadow-soft p-5"}>
           <p className="text-sm font-bold text-[var(--text)]">
             {t.setTermDates ?? "Set term dates"} — {needsTermDates.courseName}
           </p>
           <p className="mt-1 text-xs text-[var(--muted)]">
             {t.setTermDatesPrompt ?? "We couldn't find the first/last day of class in the syllabus. Enter them so your calendar only shows classes within the term."}
           </p>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className={compact ? "mt-2 flex flex-wrap items-center gap-2" : "mt-4 flex flex-wrap items-center gap-3"}>
             <label className="flex items-center gap-2 text-sm font-medium text-[var(--text)]">
               <span>{t.firstDayOfTerm ?? "First day of term"}</span>
               <input
@@ -350,7 +352,7 @@ export function UploadSyllabus({
             </button>
           </div>
           {activeCourseId && (
-            <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className={compact ? "mt-2 flex flex-wrap items-center gap-2" : "mt-4 flex flex-wrap items-center gap-2"}>
               <span className="text-sm font-medium text-[var(--text)]">{t.courseColor ?? "Course colour"}:</span>
               <div className="flex gap-1">
                 {COURSE_COLOR_PRESETS.map((hex) => (
@@ -372,7 +374,7 @@ export function UploadSyllabus({
       )}
 
       {needsClassTime && (
-        <div className="mt-5 rounded-xl bg-[var(--orange-light)] shadow-soft p-5">
+        <div className={compact ? "mt-2 rounded-lg bg-[var(--orange-light)] shadow-soft p-3" : "mt-5 rounded-xl bg-[var(--orange-light)] shadow-soft p-5"}>
           <p className="text-sm font-bold text-[var(--text)]">
             {t.enterClassTime} — {needsClassTime.courseName}
           </p>
@@ -381,7 +383,7 @@ export function UploadSyllabus({
           {needsClassTime.suggestedDays?.length ? (
             <p className="mt-1 text-xs text-[var(--muted)]">{t.suggestedDaysFromDates}</p>
           ) : null}
-          <div className="mt-4 space-y-4">
+          <div className={compact ? "mt-2 space-y-2" : "mt-4 space-y-4"}>
             {blocks.map((block, i) => (
               <div
                 key={i}
@@ -445,7 +447,7 @@ export function UploadSyllabus({
             </div>
           </div>
           {activeCourseId && (
-            <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className={compact ? "mt-2 flex flex-wrap items-center gap-2" : "mt-4 flex flex-wrap items-center gap-2"}>
               <span className="text-sm font-medium text-[var(--text)]">{t.courseColor ?? "Course colour"}:</span>
               <div className="flex gap-1">
                 {COURSE_COLOR_PRESETS.map((hex) => (

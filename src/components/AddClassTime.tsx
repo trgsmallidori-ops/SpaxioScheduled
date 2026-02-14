@@ -55,7 +55,7 @@ function refetchCourses(setCourses: (c: Course[]) => void) {
   });
 }
 
-export function AddClassTime({ onSave }: { onSave: () => void }) {
+export function AddClassTime({ onSave, compact = false }: { onSave: () => void; compact?: boolean }) {
   const { t } = useLocale();
   const [courses, setCourses] = useState<Course[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -147,17 +147,17 @@ export function AddClassTime({ onSave }: { onSave: () => void }) {
   }
 
   return (
-    <div className="mt-5 rounded-xl bg-[var(--orange-light)] shadow-soft p-5">
-      <h3 className="text-base font-bold text-[var(--text)]">🕐 {t.addClassTime}</h3>
-      <p className="mt-2 text-sm text-[var(--muted)]">
+    <div className={compact ? "mt-0 rounded-lg bg-[var(--orange-light)] shadow-soft p-3" : "mt-5 rounded-xl bg-[var(--orange-light)] shadow-soft p-5"}>
+      <h3 className={compact ? "text-sm font-bold text-[var(--text)]" : "text-base font-bold text-[var(--text)]"}>🕐 {t.addClassTime}</h3>
+      <p className={compact ? "mt-1 text-xs text-[var(--muted)]" : "mt-2 text-sm text-[var(--muted)]"}>
         These courses have no class time. Add one or more times (e.g. lecture Mon/Wed, lab Tue) to show them on the calendar.
       </p>
-      <ul className="mt-4 space-y-4">
+      <ul className={compact ? "mt-2 space-y-2" : "mt-4 space-y-4"}>
         {needClassTime.map((c) => (
-          <li key={c.id} className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface)]/80 p-4">
+          <li key={c.id} className={compact ? "rounded-lg border border-[var(--border-subtle)] bg-[var(--surface)]/80 p-2" : "rounded-lg border border-[var(--border-subtle)] bg-[var(--surface)]/80 p-4"}>
             <span className="font-semibold text-[var(--text)]">{c.name}</span>
             {editingId === c.id ? (
-              <div className="mt-3 space-y-3">
+              <div className={compact ? "mt-2 space-y-2" : "mt-3 space-y-3"}>
                 {blocks.map((block, i) => (
                   <div key={i} className="flex flex-wrap items-center gap-3">
                     <input
@@ -230,14 +230,14 @@ export function AddClassTime({ onSave }: { onSave: () => void }) {
       </ul>
 
       {needTermDates.length > 0 && (
-        <div className="mt-6 border-t border-[var(--border-subtle)] pt-5">
-          <h3 className="text-base font-bold text-[var(--text)]">📅 {t.setTermDates ?? "Set term dates"}</h3>
-          <p className="mt-1 text-sm text-[var(--muted)]">
+        <div className={compact ? "mt-3 border-t border-[var(--border-subtle)] pt-3" : "mt-6 border-t border-[var(--border-subtle)] pt-5"}>
+          <h3 className={compact ? "text-sm font-bold text-[var(--text)]" : "text-base font-bold text-[var(--text)]"}>📅 {t.setTermDates ?? "Set term dates"}</h3>
+          <p className={compact ? "mt-0.5 text-xs text-[var(--muted)]" : "mt-1 text-sm text-[var(--muted)]"}>
             {t.setTermDatesPrompt ?? "Set first/last day of term so classes don't extend past your semester."}
           </p>
-          <ul className="mt-3 space-y-3">
+          <ul className={compact ? "mt-2 space-y-2" : "mt-3 space-y-3"}>
             {needTermDates.map((c) => (
-              <li key={c.id} className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface)]/80 p-3">
+              <li key={c.id} className={compact ? "rounded-lg border border-[var(--border-subtle)] bg-[var(--surface)]/80 p-2" : "rounded-lg border border-[var(--border-subtle)] bg-[var(--surface)]/80 p-3"}>
                 <span className="font-semibold text-[var(--text)]">{c.name}</span>
                 {termDatesId === c.id ? (
                   <div className="mt-3 flex flex-wrap items-center gap-3">
