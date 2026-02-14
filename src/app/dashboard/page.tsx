@@ -10,6 +10,7 @@ import { AddClassTime } from "@/components/AddClassTime";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { FREE_UPLOADS } from "@/lib/stripe";
 import { DEFAULT_COURSE_COLOR } from "@/lib/courseColors";
+import { eventsToIcs, downloadIcs } from "@/lib/exportToIcs";
 import type { CalendarEvent as CalEvent } from "@/types/database";
 import type { UserQuota } from "@/types/database";
 import type { Course } from "@/types/database";
@@ -28,6 +29,7 @@ export default function DashboardPage() {
   const [deleteConfirmCourseId, setDeleteConfirmCourseId] = useState<string | null>(null);
   const [deleteCourseLoading, setDeleteCourseLoading] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -185,6 +187,13 @@ export default function DashboardPage() {
             {t.calendar}
           </h2>
           <div className="flex flex-wrap items-center gap-2 min-w-0">
+            <button
+              type="button"
+              onClick={() => setExportModalOpen(true)}
+              className="rounded-xl border border-[var(--divider)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--text)] shadow-soft hover:bg-[var(--border-subtle)]"
+            >
+              {t.exportCalendar}
+            </button>
             <label className="flex items-center gap-2">
               <span className="text-sm font-semibold text-[var(--muted)]">{t.filterByCourse}</span>
               <select
@@ -304,6 +313,90 @@ export default function DashboardPage() {
                   />
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export calendar modal */}
+      {exportModalOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="export-modal-title"
+          onClick={() => setExportModalOpen(false)}
+        >
+          <div
+            className="my-8 w-full max-w-lg rounded-2xl bg-[var(--surface)] shadow-soft-lg border border-[var(--border-subtle)] max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[var(--divider)] px-4 py-3 sm:px-6">
+              <h2 id="export-modal-title" className="text-lg font-bold text-[var(--text)]">
+                {t.exportCalendar}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setExportModalOpen(false)}
+                className="rounded-xl p-2 text-[var(--muted)] hover:bg-[var(--bg)] hover:text-[var(--text)] transition-colors"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-6">
+              <p className="text-sm text-[var(--muted)]">
+                {t.exportCalendarDesc}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  const ics = eventsToIcs(filteredEvents, courseNames);
+                  downloadIcs(ics);
+                }}
+                disabled={filteredEvents.length === 0}
+                className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t.exportDownload}
+                {filteredEvents.length === 0 && " (no events)"}
+              </button>
+              <div>
+                <h3 className="text-base font-bold text-[var(--text)] mb-3">
+                  {t.howToImport}
+                </h3>
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg)]/50 p-4">
+                    <h4 className="text-sm font-semibold text-[var(--text)] mb-2">
+                      {t.importGoogleTitle}
+                    </h4>
+                    <ol className="text-sm text-[var(--muted)] list-decimal list-inside space-y-1.5 whitespace-pre-line">
+                      {(t.importGoogleSteps as string).split("\n").map((line, i) => (
+                        <li key={i}>{line.replace(/^\d+\.\s*/, "")}</li>
+                      ))}
+                    </ol>
+                  </div>
+                  <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg)]/50 p-4">
+                    <h4 className="text-sm font-semibold text-[var(--text)] mb-2">
+                      {t.importAppleTitle}
+                    </h4>
+                    <ol className="text-sm text-[var(--muted)] list-decimal list-inside space-y-1.5 whitespace-pre-line">
+                      {(t.importAppleSteps as string).split("\n").map((line, i) => (
+                        <li key={i}>{line.replace(/^\d+\.\s*/, "")}</li>
+                      ))}
+                    </ol>
+                  </div>
+                  <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg)]/50 p-4">
+                    <h4 className="text-sm font-semibold text-[var(--text)] mb-2">
+                      {t.importOutlookTitle}
+                    </h4>
+                    <ol className="text-sm text-[var(--muted)] list-decimal list-inside space-y-1.5 whitespace-pre-line">
+                      {(t.importOutlookSteps as string).split("\n").map((line, i) => (
+                        <li key={i}>{line.replace(/^\d+\.\s*/, "")}</li>
+                      ))}
+                    </ol>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
