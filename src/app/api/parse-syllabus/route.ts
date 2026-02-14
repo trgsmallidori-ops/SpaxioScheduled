@@ -73,8 +73,10 @@ CRITICAL RULES:
    - Items in blue, bold, or with keywords "Test", "Review", "Feedback", "Study Break", "Quiz", "Due" are important events → use type "test", "exam", or "assignment". Do not duplicate that day with a "Class" event.
    - Blank "Readings" for a row often means the Topic is an event (test, review) rather than a reading-based lecture—use that as a hint.
 
-   DATE HANDLING:
-   - The calendar year is the current year (e.g. 2026). Always assign dates so the weekday matches the real calendar (e.g. Jan 20, 2026 is a Tuesday; use a calendar for the year). In-class topics must fall ONLY on the course's class days (e.g. if T/Th, only Tuesdays and Thursdays).
+   DATE HANDLING (CRITICAL - ACCURACY IS ESSENTIAL):
+   - YEAR: Use the year provided in the "Today's date" line below for ALL dates. If the syllabus says "Jan 22" or "January 22nd", convert to that exact calendar date in that year (e.g. 2026-01-22). Jan 22, 2026 is a Thursday—verify your dates against the real calendar.
+   - SPECIFIC DATE PRIORITY: When the syllabus gives an EXPLICIT calendar date (e.g. "Jan 22", "Jan 22nd", "January 22", "1/22", "Jan 22 2026", "Jan 22-Jan 24"), use that EXACT date. Do NOT substitute a different date based on day-of-week. "Jan 22" means 2026-01-22—put the event on that date, not on "the next Tuesday" or any other day. The syllabus author chose that date; honor it.
+   - CLASS DAYS: When distributing topics across weeks without specific dates, use ONLY the course's class days (e.g. T/Th). But when the syllabus explicitly lists "Jan 22" or "Jan 22-Jan 24", those ARE the specific dates—use them as-is, even if that date falls on a class day (it should, since the professor scheduled it).
    - Search the ENTIRE document: "Tentative Schedule", "Course Calendar", "Important Dates", "Weekly Schedule", tables, bullet lists, paragraphs, and any phrase like "class meets", "T/Th", "Tuesday and Thursday".
    - Convert "Oct 15", "10/15", "October 15", "March 10th", "Week 7" to YYYY-MM-DD. For hyphenated pairs like "Jan 22-Jan 24", use only the listed dates (Jan 22 and Jan 24), not the days in between. For "Week N", use termStartDate: first day of that week (e.g. Week 1 = termStartDate, Week 2 = termStartDate + 7 days).
    - When the syllabus uses vague durations like "roughly 4 weeks" or "Weeks 4–7: work on Assignment 1" without exact day-by-day dates, anchor that span to calendar weeks using termStartDate AND place the related topics/assignment ONLY on the actual class meeting days from the lecture schedule (e.g. the Tue/Thu or MWF pattern in classSchedule). Do NOT invent extra non-class days; repeat the item on each class day across that span instead of sprinkling it on random weekdays.
@@ -215,7 +217,11 @@ async function handleParseSyllabus(request: NextRequest) {
       },
       {
         role: "user",
-        content: `Syllabus text:\n\n${text.slice(0, 12000)}`,
+        content: `Today's date: ${new Date().toISOString().slice(0, 10)} (use this year for all dates unless the syllabus explicitly states a different year).
+
+Syllabus text:
+
+${text.slice(0, 12000)}`,
       },
     ],
     response_format: { type: "json_object" },
