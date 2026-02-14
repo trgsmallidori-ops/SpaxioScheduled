@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 type MailProfile = "default" | "reminder";
 
@@ -42,9 +43,23 @@ const PROFILE_ENV_KEYS: Record<
 
 const transportCache: Partial<Record<MailProfile, nodemailer.Transporter>> = {};
 const configCache: Partial<Record<MailProfile, MailerConfig>> = {};
+let resendClient: Resend | null = null;
 
 function getEnv(key: string) {
   return process.env[key];
+}
+
+/** Resend has better deliverability (SPF/DKIM/DMARC handled) — use when configured. */
+export function isResendConfigured(): boolean {
+  return Boolean(getEnv("RESEND_API_KEY")?.trim() && getEnv("RESEND_FROM")?.trim());
+}
+
+function getResendFrom(profile: MailProfile): string {
+  const from = getEnv("RESEND_FROM")?.trim();
+  if (from) return from;
+  const profileFrom = getEnv(PROFILE_ENV_KEYS[profile].from)?.trim();
+  if (profileFrom) return profileFrom;
+  throw new Error("Set RESEND_FROM or REMINDER_SMTP_FROM (must be from a domain verified in Resend)");
 }
 
 function isProfileConfigured(profile: MailProfile) {
@@ -93,7 +108,7 @@ function getTransporter(profile: MailProfile) {
 }
 
 export function isSmtpConfigured(profile: MailProfile = "default") {
-  return isProfileConfigured(profile);
+  return isResendConfigured() || isProfileConfigured(profile);
 }
 
 type SendMailArgs = {
@@ -108,6 +123,24 @@ export async function sendMail({ to, subject, html, profile = "default", replyTo
   if (!to) {
     throw new Error("Missing 'to' when sending email");
   }
+
+  // Prefer Resend for better deliverability (fixes iCloud/Gmail blocks)
+  if (isResendConfigured()) {
+    if (!resendClient) {
+      resendClient = new Resend(getEnv("RESEND_API_KEY")!);
+    }
+    const from = getResendFrom(profile);
+    const { error } = await resendClient.emails.send({
+      from,
+      to,
+      replyTo: replyTo || undefined,
+      subject,
+      html,
+    });
+    if (error) throw new Error(`Resend: ${error.message}`);
+    return;
+  }
+
   const { transporter: smtp, config } = getTransporter(profile);
   await smtp.sendMail({
     from: config.from,

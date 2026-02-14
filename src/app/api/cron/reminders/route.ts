@@ -24,7 +24,10 @@ export async function GET(request: NextRequest) {
   }
 
   if (!isSmtpConfigured("reminder")) {
-    return NextResponse.json({ error: "Reminder SMTP not configured." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Email not configured. Set RESEND_API_KEY and RESEND_FROM (recommended) or REMINDER_SMTP_*." },
+      { status: 503 }
+    );
   }
 
   const admin = createAdminClient();

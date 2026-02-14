@@ -30,6 +30,10 @@ export function reminderEmailHtml(items: ReminderItem[], locale: "en" | "fr"): s
   const footer = isFr
     ? "Vous recevez ce courriel car vous avez activé les rappels sur SpaxioScheduled."
     : "You're receiving this email because you enabled reminders on SpaxioScheduled.";
+  const unsubscribeText = isFr ? "Désactiver les rappels" : "Unsubscribe from reminders";
+  const unsubscribeHint = isFr
+    ? "Pour ne plus recevoir ces courriels, désactivez les rappels depuis le tableau de bord (icône cloche)."
+    : "To stop these emails, turn off reminders in the Dashboard (bell icon).";
 
   const rows = items
     .map(
@@ -63,6 +67,7 @@ export function reminderEmailHtml(items: ReminderItem[], locale: "en" | "fr"): s
     </table>
     <p><a href="${APP_URL}/dashboard" style="color: #8b9f7e; font-weight: 600;">${viewCalendar}</a></p>
     <p style="font-size: 12px; color: #6b6b65;">${footer}</p>
+    <p style="font-size: 12px; color: #9a9a94; margin-top: 12px;"><a href="${APP_URL}/dashboard" style="color: #8b9f7e;">${unsubscribeText}</a> — ${unsubscribeHint}</p>
   </div>
 </body>
 </html>`;

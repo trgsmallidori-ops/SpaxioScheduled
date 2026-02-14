@@ -42,7 +42,7 @@ export async function POST() {
 
     if (!isSmtpConfigured("reminder")) {
       return NextResponse.json(
-        { error: "Reminder SMTP is not configured. Set REMINDER_SMTP_* env vars." },
+        { error: "Email is not configured. Set RESEND_API_KEY and RESEND_FROM (recommended for deliverability) or REMINDER_SMTP_* env vars." },
         { status: 503 }
       );
     }
