@@ -9,7 +9,7 @@ const HERO_IMAGE_SOURCES = [
   { src: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1920&q=90", alt: "University lecture hall" },
   { src: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1920&q=90", alt: "University classroom" },
   { src: "https://images.unsplash.com/photo-1562774053-701939374585?w=1920&q=90", alt: "University campus" },
-  { src: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920&q=90", alt: "Students studying on campus" },
+  { src: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=1920&q=90", alt: "Students studying on campus" },
   { src: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1920&q=90", alt: "University library" },
   { src: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1920&q=90", alt: "Student studying with laptop and notes" },
   { src: "https://images.unsplash.com/photo-1506784365847-bbad939e9335?w=1920&q=90", alt: "Calendar and planner" },

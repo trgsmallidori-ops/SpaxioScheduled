@@ -10,7 +10,8 @@ import { AddClassTime } from "@/components/AddClassTime";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { FREE_UPLOADS } from "@/lib/stripe";
 import { DEFAULT_COURSE_COLOR } from "@/lib/courseColors";
-import { eventsToIcs, downloadIcs } from "@/lib/exportToIcs";
+import { eventsToIcs, downloadIcs, autoImportIcs } from "@/lib/exportToIcs";
+import { ExportPromptModal } from "@/components/ExportPromptModal";
 import type { CalendarEvent as CalEvent } from "@/types/database";
 import type { UserQuota } from "@/types/database";
 import type { Course } from "@/types/database";
@@ -30,6 +31,7 @@ export default function DashboardPage() {
   const [deleteCourseLoading, setDeleteCourseLoading] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [exportPromptOpen, setExportPromptOpen] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -79,27 +81,14 @@ export default function DashboardPage() {
       .then(({ data }) => setQuota(data as UserQuota | null));
   }, [userId]);
 
-  const refetchEvents = useCallback(() => {
-    if (!userId) return;
+  const refetchEvents = useCallback((): Promise<void> => {
+    if (!userId) return Promise.resolve();
     const supabase = createClient();
-    supabase
-      .from("calendar_events")
-      .select("*")
-      .eq("user_id", userId)
-      .order("event_date")
-      .then(({ data }) => setEvents((data as CalEvent[]) || []));
-    supabase
-      .from("courses")
-      .select("*")
-      .eq("user_id", userId)
-      .order("name")
-      .then(({ data }) => setCourses((data as Course[]) || []));
-    supabase
-      .from("user_quota")
-      .select("*")
-      .eq("user_id", userId)
-      .single()
-      .then(({ data }) => setQuota(data as UserQuota | null));
+    return Promise.all([
+      supabase.from("calendar_events").select("*").eq("user_id", userId).order("event_date").then(({ data }) => setEvents((data as CalEvent[]) || [])),
+      supabase.from("courses").select("*").eq("user_id", userId).order("name").then(({ data }) => setCourses((data as Course[]) || [])),
+      supabase.from("user_quota").select("*").eq("user_id", userId).single().then(({ data }) => setQuota(data as UserQuota | null)),
+    ]).then(() => {});
   }, [userId]);
 
   useEffect(() => {
@@ -159,6 +148,7 @@ export default function DashboardPage() {
     refetchEvents();
   }
 
+
   return (
     <div className="relative flex w-full max-w-full flex-col bg-[var(--bg)]">
       {/* Alerts overlay — above calendar so calendar stays full height */}
@@ -190,9 +180,10 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() => setExportModalOpen(true)}
-              className="rounded-xl border border-[var(--divider)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--text)] shadow-soft hover:bg-[var(--border-subtle)]"
+              className="rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white shadow-lg hover:bg-[var(--accent-hover)] transition-all hover:shadow-xl flex items-center gap-2"
             >
-              {t.exportCalendar}
+              <span className="text-base" aria-hidden>📅</span>
+              <span>{t.exportCalendar}</span>
             </button>
             <label className="flex items-center gap-2">
               <span className="text-sm font-semibold text-[var(--muted)]">{t.filterByCourse}</span>
@@ -284,7 +275,11 @@ export default function DashboardPage() {
               ) : (
                 <>
                   <div className="mt-4">
-                    <UploadSyllabus onSuccess={refetchEvents} />
+                    <UploadSyllabus
+                      onSuccess={async () => {
+                        await refetchEvents();
+                      }}
+                    />
                   </div>
                   <div className="mt-4">
                     <AddClassTime onSave={refetchEvents} />
@@ -348,18 +343,32 @@ export default function DashboardPage() {
               <p className="text-sm text-[var(--muted)]">
                 {t.exportCalendarDesc}
               </p>
-              <button
-                type="button"
-                onClick={() => {
-                  const ics = eventsToIcs(filteredEvents, courseNames);
-                  downloadIcs(ics);
-                }}
-                disabled={filteredEvents.length === 0}
-                className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {t.exportDownload}
-                {filteredEvents.length === 0 && " (no events)"}
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const ics = eventsToIcs(filteredEvents, courseNames);
+                    autoImportIcs(ics);
+                  }}
+                  disabled={filteredEvents.length === 0}
+                  className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {t.exportAutoImport}
+                  {filteredEvents.length === 0 && " (no events)"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const ics = eventsToIcs(filteredEvents, courseNames);
+                    downloadIcs(ics);
+                  }}
+                  disabled={filteredEvents.length === 0}
+                  className="w-full rounded-xl border border-[var(--divider)] bg-[var(--surface)] px-4 py-3 text-sm font-bold text-[var(--text)] hover:bg-[var(--border-subtle)] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {t.exportDownloadToFiles}
+                  {filteredEvents.length === 0 && " (no events)"}
+                </button>
+              </div>
               <div>
                 <h3 className="text-base font-bold text-[var(--text)] mb-3">
                   {t.howToImport}
@@ -401,6 +410,13 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      <ExportPromptModal
+        open={exportPromptOpen}
+        onClose={() => setExportPromptOpen(false)}
+        events={filteredEvents}
+        courseNames={courseNames}
+      />
 
       <ConfirmModal
         open={deleteConfirmCourseId !== null}

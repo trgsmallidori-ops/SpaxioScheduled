@@ -56,7 +56,7 @@ CRITICAL RULES:
    - Any "due", "deadline", "submit by" with a date → type "assignment".
 
    IN-CLASS CONTENT / LECTURE TOPICS (type "other"):
-   - Week-by-week or day-by-day schedule: "Week 3: Introduction to X", "Demand Forecasting", "Product & Service Design". Use type "other" with a descriptive title (e.g. "Ch. 3: Introduction to Loops", "Process Design and Facility Layout"). These are for calendar visibility only; reminders are NOT sent for type "other".
+   - Week-by-week or day-by-day schedule: "Week 3: Introduction to X", "Demand Forecasting", "Product & Service Design". Use type "other" with a descriptive title (e.g. "Ch. 3: Introduction to Loops", "Process Design and Facility Layout"). These are for calendar visibility only.
    - "Guest speaker", "Field trip", "Review session", "Workshop", "Discussion of Ch. 5" → type "other".
    - NEVER add an event titled "Class" or with type "class". If a day already has an important event (test, quiz, assignment, review, feedback), do NOT add a separate "Class" or generic lecture event for that same date. Only add the important event(s). You may add the lecture topic as type "other" with a descriptive title on the same or adjacent date, but the primary entry for that day must be the test/quiz/assignment/review/feedback—never "Class".
    - Important events (tests, quizzes, assignments, review, feedback, study break) always take priority: use type "test", "exam", or "assignment". Regular lecture topics (e.g. "Demand Forecasting", "Strategic Capacity Planning") are type "other" only.

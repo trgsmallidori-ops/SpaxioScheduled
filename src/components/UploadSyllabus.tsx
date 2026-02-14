@@ -23,9 +23,11 @@ function emptyBlock(start = "09:00", end = "10:00"): TimeBlock {
 
 export function UploadSyllabus({
   onSuccess,
+  onAllUploadsComplete,
   compact = false,
 }: {
   onSuccess: () => void;
+  onAllUploadsComplete?: () => void;
   compact?: boolean;
 }) {
   const { t } = useLocale();
@@ -163,13 +165,15 @@ export function UploadSyllabus({
     if (!result.success) return;
     fileQueueRef.current = queue.slice(1);
     if (result.needsFollowUp) return;
-    onSuccess();
+    await Promise.resolve(onSuccess());
     if (fileQueueRef.current.length > 0) {
       setLoading(true);
       setNeedsTermDates(null);
       setNeedsClassTime(null);
       setParsed(null);
       processNextInQueue();
+    } else {
+      onAllUploadsComplete?.();
     }
   }
 
@@ -244,12 +248,14 @@ export function UploadSyllabus({
       }
       setNeedsClassTime(null);
       setBlocks([emptyBlock()]);
-      onSuccess();
+      await Promise.resolve(onSuccess());
       if (fileQueueRef.current.length > 0) {
         setLoading(true);
         setNeedsTermDates(null);
         setParsed(null);
         processNextInQueue();
+      } else {
+        onAllUploadsComplete?.();
       }
     } catch {
       setError("Network error");

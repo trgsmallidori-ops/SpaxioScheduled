@@ -5,10 +5,8 @@ import { usePathname } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
-import { Bell } from "lucide-react";
-import { ReminderSettings } from "@/components/ReminderSettings";
 
 export function Header() {
   const { t, locale, setLocale } = useLocale();
@@ -19,19 +17,6 @@ export function Header() {
   const [isCreator, setIsCreator] = useState(false);
   const [quota, setQuota] = useState<{ totalLeft: number; hasUpgraded: boolean } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [reminderOpen, setReminderOpen] = useState(false);
-  const reminderRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!reminderOpen) return;
-    function handleClickOutside(e: MouseEvent) {
-      if (reminderRef.current && !reminderRef.current.contains(e.target as Node)) {
-        setReminderOpen(false);
-      }
-    }
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [reminderOpen]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -194,30 +179,6 @@ export function Header() {
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-4">
             {navContent(false, false)}
-            {user && (
-              <div className="relative" ref={reminderRef}>
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); setReminderOpen((o) => !o); }}
-                  className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] hover:text-[var(--text)] transition"
-                  aria-label={t.remindMe}
-                  aria-expanded={reminderOpen}
-                >
-                  <Bell className="h-4 w-4" aria-hidden />
-                  <span>{t.remindMe}</span>
-                </button>
-                {reminderOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-[min(320px,90vw)] z-50 rounded-xl border border-[var(--divider)] bg-[var(--surface)] shadow-soft-lg p-3">
-                    <ReminderSettings
-                      userId={user.id}
-                      userEmail={user.email ?? ""}
-                      defaultExpanded
-                      onSaved={() => setReminderOpen(false)}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
             <div className="ml-auto flex items-center gap-1">
               {langButtons(false)}
             </div>
@@ -278,16 +239,6 @@ export function Header() {
               </button>
               {langButtons(true)}
             </div>
-            {user && (
-              <div className="mb-4 rounded-xl border border-[var(--divider)] bg-[var(--bg)] overflow-hidden">
-                <ReminderSettings
-                  userId={user.id}
-                  userEmail={user.email ?? ""}
-                  defaultExpanded
-                  onSaved={closeMenu}
-                />
-              </div>
-            )}
             {user ? (
               <>
                 {!isCreator && !isAdmin && quota && (quota.totalLeft <= 0 || !quota.hasUpgraded) && (

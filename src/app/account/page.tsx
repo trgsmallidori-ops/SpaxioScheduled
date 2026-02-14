@@ -126,15 +126,15 @@ export default function AccountPage() {
       )}
 
       <section className="mt-8 rounded-2xl bg-[var(--surface)] p-6 shadow-soft">
-        <h2 className="text-lg font-bold text-[var(--text)]">🔔 {t.notifications}</h2>
+        <h2 className="text-lg font-bold text-[var(--text)]">📅 {t.exportCalendar}</h2>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          {t.manageRemindersOnDashboard}
+          {t.exportCalendarDesc}
         </p>
         <Link
           href="/dashboard"
           className="mt-3 inline-block rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)]"
         >
-          {t.calendar} → {t.remindMe}
+          {t.goToDashboard} → {t.exportCalendar}
         </Link>
       </section>
 

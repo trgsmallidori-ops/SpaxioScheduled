@@ -58,17 +58,6 @@ export type Profile = {
   updated_at: string;
 };
 
-export type NotificationPreferences = {
-  user_id: string;
-  email: string;
-  remind_days_before: number;
-  remind_weeks_before: number;
-  frequency: string;
-  locale: string;
-  created_at: string;
-  updated_at: string;
-};
-
 export type ParsedSyllabus = {
   courseName: string;
   courseCode?: string;

@@ -9,15 +9,11 @@ function getContactToEmail(): string | null {
   const contact = process.env.CONTACT_EMAIL?.trim();
   if (contact) return contact;
   if (process.env.SMTP_FROM?.trim()) return process.env.SMTP_FROM.trim();
-  if (process.env.REMINDER_SMTP_FROM?.trim()) return process.env.REMINDER_SMTP_FROM.trim();
   return null;
 }
 
-/** Use default SMTP if configured, otherwise reminder SMTP so one inbox is enough. */
-function getContactProfile(): "default" | "reminder" | null {
-  if (isSmtpConfigured("default")) return "default";
-  if (isSmtpConfigured("reminder")) return "reminder";
-  return null;
+function getContactProfile(): "default" | null {
+  return isSmtpConfigured("default") ? "default" : null;
 }
 
 export async function POST(request: NextRequest) {
@@ -32,7 +28,7 @@ export async function POST(request: NextRequest) {
     const profile = getContactProfile();
     if (!profile) {
       return apiError(
-        "Refund requests require SMTP. Configure either SMTP_* (default) or REMINDER_SMTP_* in your environment.",
+        "Refund requests require SMTP. Configure SMTP_* in your environment.",
         503
       );
     }

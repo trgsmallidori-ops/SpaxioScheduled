@@ -6,7 +6,7 @@ export const ogImageUrl = `${SITE_URL}/logo.png`;
 export const defaultMeta = {
   title: "Spaxio Scheduled — AI School Calendar & Course Outline Calendar | SpaxioScheduled",
   description:
-    "Spaxio Scheduled: turn your syllabi into one smart school calendar. AI-powered course outline calendar for students: upload syllabi, get assignments, tests, and class times in one place. Free syllabus planner with reminders.",
+    "Spaxio Scheduled: turn your syllabi into one smart school calendar. AI-powered course outline calendar for students: upload syllabi, get assignments, tests, and class times in one place. Export to Google Calendar, Apple Calendar, or Outlook.",
   keywords: [
     "Spaxio Scheduled",
     "SpaxioScheduled",
@@ -43,9 +43,8 @@ export function buildJsonLd() {
           "AI syllabus parsing",
           "Course outline to calendar",
           "School calendar with assignments and exams",
-          "Class schedule and reminders",
+          "Export to Google Calendar, Apple Calendar, Outlook",
           "PDF and Word syllabus upload",
-          "Exam and assignment reminders",
         ],
       },
       {

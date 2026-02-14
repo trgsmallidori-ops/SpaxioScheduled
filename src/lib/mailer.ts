@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import { Resend } from "resend";
 
-type MailProfile = "default" | "reminder";
+type MailProfile = "default";
 
 type MailerConfig = {
   host: string;
@@ -31,14 +31,6 @@ const PROFILE_ENV_KEYS: Record<
     pass: "SMTP_PASS",
     from: "SMTP_FROM",
   },
-  reminder: {
-    host: "REMINDER_SMTP_HOST",
-    port: "REMINDER_SMTP_PORT",
-    secure: "REMINDER_SMTP_SECURE",
-    user: "REMINDER_SMTP_USER",
-    pass: "REMINDER_SMTP_PASS",
-    from: "REMINDER_SMTP_FROM",
-  },
 };
 
 const transportCache: Partial<Record<MailProfile, nodemailer.Transporter>> = {};
@@ -59,7 +51,7 @@ function getResendFrom(profile: MailProfile): string {
   if (from) return from;
   const profileFrom = getEnv(PROFILE_ENV_KEYS[profile].from)?.trim();
   if (profileFrom) return profileFrom;
-  throw new Error("Set RESEND_FROM or REMINDER_SMTP_FROM (must be from a domain verified in Resend)");
+  throw new Error("Set RESEND_FROM or SMTP_FROM (must be from a domain verified in Resend)");
 }
 
 function isProfileConfigured(profile: MailProfile) {

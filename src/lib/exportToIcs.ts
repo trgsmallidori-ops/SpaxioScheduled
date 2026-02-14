@@ -49,14 +49,39 @@ function toIcsDate(dateStr: string, time: { hours: number; minutes: number } | n
 }
 
 /**
+ * Get default reminder trigger (VALARM) based on event type.
+ * - Assignments: 1 day before
+ * - Tests/Exams: 3 days before
+ * - Classes: 15 minutes before
+ * - Other: 1 day before
+ */
+function getAlarmTrigger(eventType: CalendarEvent["event_type"]): string {
+  switch (eventType) {
+    case "assignment":
+    case "other":
+      return "-P1D"; // 1 day before
+    case "test":
+    case "exam":
+      return "-P3D"; // 3 days before
+    case "class":
+      return "-PT15M"; // 15 minutes before
+    default:
+      return "-P1D";
+  }
+}
+
+/**
  * Generate iCalendar (.ics) content from calendar events.
  * Compatible with Google Calendar and Apple Calendar.
+ * Includes default reminders (VALARM) based on event type.
  */
 export function eventsToIcs(events: CalendarEvent[], courseNames: Record<string, string> = {}): string {
   const lines: string[] = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     "PRODID:-//SpaxioScheduled//Calendar Export//EN",
+    "X-WR-CALNAME:SpaxioScheduled",
+    "X-WR-CALDESC:Course schedule from SpaxioScheduled",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
   ];
@@ -113,6 +138,12 @@ export function eventsToIcs(events: CalendarEvent[], courseNames: Record<string,
     }
     lines.push(`SUMMARY:${summary}`);
     if (e.notes) lines.push(`DESCRIPTION:${escapeIcsText(e.notes)}`);
+    const trigger = getAlarmTrigger(e.event_type);
+    lines.push("BEGIN:VALARM");
+    lines.push(`TRIGGER:${trigger}`);
+    lines.push("ACTION:DISPLAY");
+    lines.push(`DESCRIPTION:${escapeIcsText(e.title + suffix)}`);
+    lines.push("END:VALARM");
     lines.push("END:VEVENT");
   }
 
@@ -129,6 +160,23 @@ export function downloadIcs(icsContent: string, filename = "spaxio-calendar.ics"
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Download .ics and attempt to open with default calendar app.
+ * On macOS/iOS this may open Calendar directly; on Windows it typically saves to Downloads.
+ */
+export function autoImportIcs(icsContent: string, filename = "spaxio-calendar.ics"): void {
+  const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.target = "_blank";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
