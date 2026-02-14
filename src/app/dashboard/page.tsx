@@ -217,11 +217,11 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Prominent floating Upload syllabus button */}
+      {/* Prominent floating Upload syllabus button — left side */}
       <button
         type="button"
         onClick={() => setUploadModalOpen(true)}
-        className="fixed bottom-5 right-5 z-30 flex items-center gap-2 rounded-2xl bg-[var(--accent)] px-5 py-3.5 text-base font-bold text-white shadow-lg hover:bg-[var(--accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-[var(--bg)] sm:bottom-6 sm:right-6 sm:px-6 sm:py-4 sm:text-lg"
+        className="fixed bottom-5 left-5 z-30 flex items-center gap-2 rounded-2xl bg-[var(--accent)] px-5 py-3.5 text-base font-bold text-white shadow-lg hover:bg-[var(--accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-[var(--bg)] sm:bottom-6 sm:left-6 sm:px-6 sm:py-4 sm:text-lg"
         aria-label={t.uploadSyllabus}
       >
         <span className="text-xl sm:text-2xl" aria-hidden>↑</span>
