@@ -71,6 +71,13 @@ export async function POST() {
         { status: 502 }
       );
     }
+    // Resend errors (e.g. domain not verified, invalid API key) — surface the message for debugging
+    if (/^Resend: /.test(message)) {
+      return NextResponse.json(
+        { error: message },
+        { status: 502 }
+      );
+    }
     return handleUnexpectedError(err, "creator/test-reminders");
   }
 }
