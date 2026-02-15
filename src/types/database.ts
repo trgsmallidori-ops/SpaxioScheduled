@@ -44,6 +44,12 @@ export type UserQuota = {
   paid_uploads_used: number;
   paid_uploads_purchased: number;
   stripe_customer_id: string | null;
+  subscription_status?: "active" | "canceled" | "past_due" | "incomplete" | null;
+  subscription_id?: string | null;
+  subscription_current_period_start?: string | null;
+  subscription_current_period_end?: string | null;
+  subscription_uploads_quota?: number;
+  subscription_uploads_used?: number;
   created_at: string;
   updated_at: string;
 };

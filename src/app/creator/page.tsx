@@ -8,8 +8,9 @@ import type { CreatorUserRow } from "@/app/api/creator/users/route";
 import { formatDisplayDate } from "@/lib/formatDate";
 
 export default function CreatorPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [allowed, setAllowed] = useState<boolean | null>(null);
+  const [checkoutError, setCheckoutError] = useState("");
   const [stats, setStats] = useState<{ totalUsers: number; revenue: number } | null>(null);
   const [users, setUsers] = useState<CreatorUserRow[]>([]);
   useEffect(() => {
@@ -74,6 +75,36 @@ export default function CreatorPage() {
           </p>
         </div>
       </div>
+
+      <section className="mt-8 rounded-2xl bg-[var(--surface)] p-6 shadow-soft">
+        <h2 className="text-sm font-bold text-[var(--muted)]">{t.testCheckout}</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          {t.testCheckoutDesc}
+        </p>
+        <button
+          type="button"
+          onClick={async () => {
+            setCheckoutError("");
+            const res = await fetch("/api/stripe/checkout", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ locale: locale === "fr" ? "fr" : "en" }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (data.url) {
+              window.location.href = data.url;
+              return;
+            }
+            setCheckoutError(data.error || "Checkout failed. Check your Stripe configuration.");
+          }}
+          className="mt-4 rounded-xl border border-[var(--accent)]/50 bg-[var(--surface)] px-5 py-2.5 text-sm font-bold text-[var(--accent)] hover:bg-[var(--accent-light)]"
+        >
+          {t.testCheckout}
+        </button>
+        {checkoutError && (
+          <p className="mt-3 text-sm font-semibold text-red-600">{checkoutError}</p>
+        )}
+      </section>
 
       <section className="mt-10">
         <h2 className="text-xl font-bold text-[var(--text)]">👥 {t.allUsers}</h2>

@@ -26,21 +26,21 @@ export function HomePageContent() {
         <HeroImageCarousel fullScreen />
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60 pointer-events-none" aria-hidden />
         <div className="relative z-10 flex min-h-screen flex-col justify-center px-4 py-16 sm:px-6 md:py-20">
-          <div className="w-full max-w-[min(50vw,26rem)] rounded-2xl bg-black/50 backdrop-blur-md p-5 shadow-xl sm:p-6">
-            <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl md:text-4xl">
+          <div className="w-full max-w-[min(65vw,36rem)] rounded-2xl bg-black/50 backdrop-blur-md p-6 shadow-xl sm:p-8 md:p-10">
+            <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl">
               {t.siteName}
             </h1>
-            <p className="mt-3 text-base text-white/95">
+            <p className="mt-4 text-xl text-white/95 sm:text-2xl">
               {t.tagline}
             </p>
-            <p className="mt-1.5 text-sm text-white/80">
+            <p className="mt-2 text-base text-white/80 sm:text-lg">
               {t.uploadSyllabusDesc}
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-4">
               {user ? (
                 <Link
                   href="/dashboard"
-                  className="rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)]"
+                  className="rounded-xl bg-[var(--accent)] px-8 py-4 text-base font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)] sm:text-lg"
                 >
                   {t.goToDashboard}
                 </Link>
@@ -48,33 +48,33 @@ export function HomePageContent() {
                 <>
                   <Link
                     href="/signup"
-                    className="rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)]"
+                    className="rounded-xl bg-[var(--accent)] px-8 py-4 text-base font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)] sm:text-lg"
                   >
                     {t.getStarted}
                   </Link>
                   <Link
                     href="/login"
-                    className="rounded-xl shadow-soft bg-white/20 backdrop-blur px-6 py-3 text-sm font-bold text-white no-underline transition hover:bg-white/30"
+                    className="rounded-xl shadow-soft bg-white/20 backdrop-blur px-8 py-4 text-base font-bold text-white no-underline transition hover:bg-white/30 sm:text-lg"
                   >
                     {t.login}
                   </Link>
                 </>
               )}
             </div>
-            <div className="mt-6 flex flex-wrap items-center gap-2 rounded-xl bg-white/15 backdrop-blur px-4 py-3">
-              <span className="text-sm font-bold text-white">{t.freeUploads}</span>
-              <span className="text-lg text-white/90" aria-hidden>→</span>
-              <span className="text-sm font-bold text-[var(--accent)]">{t.thenPay}</span>
-              <p className="w-full text-xs text-white/80 sm:w-auto">{t.pricingSubline}</p>
+            <div className="mt-8 flex flex-wrap items-center gap-3 rounded-xl bg-white/15 backdrop-blur px-5 py-4">
+              <span className="text-base font-bold text-white sm:text-lg">{t.freeUploads}</span>
+              <span className="text-xl text-white/90" aria-hidden>→</span>
+              <span className="text-base font-bold text-[var(--accent)] sm:text-lg">{t.thenPay}</span>
+              <p className="w-full text-sm text-white/80 sm:w-auto sm:text-base">{t.pricingSubline}</p>
             </div>
-            <div className="mt-4 flex flex-col items-start gap-0.5">
+            <div className="mt-6 flex flex-col items-start gap-1">
               <Link
                 href={user ? "/dashboard" : "/signup"}
-                className="inline-block rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)]"
+                className="inline-block rounded-xl bg-[var(--accent)] px-8 py-4 text-base font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)] sm:text-lg"
               >
                 {t.upgrade}
               </Link>
-              <span className="text-xs text-white/70">{t.upgradeSecureNote}</span>
+              <span className="text-sm text-white/70">{t.upgradeSecureNote}</span>
             </div>
           </div>
         </div>

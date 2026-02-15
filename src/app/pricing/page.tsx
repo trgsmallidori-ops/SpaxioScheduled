@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   ...pageMeta({
     title: "Pricing",
     description:
-      "SpaxioScheduled pricing: 2 free syllabus uploads, then $5 for 7 more. No subscription. Affordable school calendar and course outline calendar for students.",
+      "SpaxioScheduled pricing: 2 free syllabus uploads, then $20/year for 50 uploads. Affordable school calendar and course outline calendar for students.",
     path: "/pricing",
   }),
 };
@@ -16,7 +16,7 @@ export default function PricingPage() {
     <div className="mx-auto max-w-3xl bg-[var(--bg)] px-6 py-12">
       <h1 className="text-3xl font-bold text-[var(--text)]">Pricing</h1>
       <p className="mt-4 text-lg text-[var(--text-secondary)]">
-        Simple, transparent pricing. No subscriptions. Pay only for what you need.
+        Simple, transparent pricing. Start free, then subscribe for unlimited access.
       </p>
 
       <div className="mt-12 rounded-2xl bg-[var(--surface)] shadow-soft p-8 sm:p-10">
@@ -33,12 +33,12 @@ export default function PricingPage() {
         <div className="mt-10 border-t border-[var(--divider)] pt-10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
-              <h2 className="text-2xl font-bold text-[var(--text)]">Additional uploads</h2>
+              <h2 className="text-2xl font-bold text-[var(--text)]">Annual subscription</h2>
               <p className="mt-2 text-[var(--text-secondary)]">
-                7 more syllabus uploads. One-time payment. No recurring charges.
+                50 syllabus uploads per year. Renews annually. Cancel anytime.
               </p>
             </div>
-            <div className="text-2xl font-bold text-[var(--accent)]">$5</div>
+            <div className="text-2xl font-bold text-[var(--accent)]">$20/year</div>
           </div>
         </div>
 
@@ -53,7 +53,7 @@ export default function PricingPage() {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-[var(--green)] mt-0.5">✓</span>
-            <span>No subscription—pay per pack</span>
+            <span>50 uploads per year—resets on renewal</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-[var(--green)] mt-0.5">✓</span>

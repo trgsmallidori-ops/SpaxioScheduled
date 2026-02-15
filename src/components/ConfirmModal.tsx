@@ -55,7 +55,7 @@ export function ConfirmModal({
             disabled={loading}
             className={
               isDanger
-                ? "rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
+                ? "rounded-xl bg-[var(--danger)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--danger-hover)] disabled:opacity-50"
                 : "rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50"
             }
           >

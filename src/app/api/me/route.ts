@@ -19,22 +19,32 @@ export async function GET() {
     });
   const isAdminUser = isAdmin(user.id);
   const isCreatorUser = isCreator(user.id);
-  let quota: { totalLeft: number; hasUpgraded: boolean } | null = null;
+  let quota: { totalLeft: number; hasUpgraded: boolean; isSubscribed?: boolean; subscriptionEnd?: string | null } | null = null;
   if (user.id) {
     const { data: q } = await supabase
       .from("user_quota")
-      .select("free_uploads_used, paid_uploads_purchased, paid_uploads_used")
+      .select("free_uploads_used, subscription_status, subscription_uploads_quota, subscription_uploads_used, subscription_current_period_end")
       .eq("user_id", user.id)
       .single();
     if (q) {
       const freeUsed = (q as { free_uploads_used: number }).free_uploads_used ?? 0;
-      const paidPurchased = (q as { paid_uploads_purchased: number }).paid_uploads_purchased ?? 0;
-      const paidUsed = (q as { paid_uploads_used: number }).paid_uploads_used ?? 0;
-      const paidAvailable = paidPurchased - paidUsed;
-      const totalLeft = Math.max(0, FREE_UPLOADS - freeUsed) + paidAvailable;
+      const freeAvailable = Math.max(0, FREE_UPLOADS - freeUsed);
+
+      let subscriptionAvailable = 0;
+      const subStatus = (q as { subscription_status: string | null }).subscription_status;
+      if (subStatus === "active" || subStatus === "past_due") {
+        const quotaTotal = (q as { subscription_uploads_quota: number }).subscription_uploads_quota ?? 50;
+        const quotaUsed = (q as { subscription_uploads_used: number }).subscription_uploads_used ?? 0;
+        subscriptionAvailable = Math.max(0, quotaTotal - quotaUsed);
+      }
+
+      const totalLeft = freeAvailable + subscriptionAvailable;
+      const subscriptionEnd = (q as { subscription_current_period_end: string | null }).subscription_current_period_end ?? null;
       quota = {
         totalLeft,
-        hasUpgraded: paidPurchased > 0,
+        hasUpgraded: subStatus === "active" || subStatus === "past_due",
+        isSubscribed: subStatus === "active" || subStatus === "past_due",
+        subscriptionEnd,
       };
     }
   }

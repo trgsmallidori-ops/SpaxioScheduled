@@ -155,7 +155,7 @@ export default function DashboardPage() {
       <div className="absolute top-3 left-3 right-3 z-20 flex flex-col gap-2 pointer-events-none sm:left-6 sm:right-6">
         {success && (
           <div className="rounded-xl bg-[var(--green-light)] px-4 py-2 text-sm font-semibold text-[var(--text)] shadow-soft pointer-events-auto">
-            Payment successful. You have 10 more uploads.
+            Subscription activated! You have 50 uploads this year.
           </div>
         )}
         {canceled && (
@@ -163,7 +163,14 @@ export default function DashboardPage() {
             Payment canceled.
           </div>
         )}
-        {!isCreatorOrAdmin && quota && (quota.paid_uploads_purchased ?? 0) - (quota.paid_uploads_used ?? 0) + Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0)) <= 0 && (
+        {!isCreatorOrAdmin && quota && (() => {
+          const freeAvail = Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0));
+          const subStatus = quota.subscription_status;
+          const subAvail = (subStatus === "active" || subStatus === "past_due")
+            ? Math.max(0, (quota.subscription_uploads_quota ?? 50) - (quota.subscription_uploads_used ?? 0))
+            : 0;
+          return freeAvail <= 0 && subAvail <= 0;
+        })() && (
           <div className="rounded-xl border-2 border-[var(--accent)] bg-[var(--accent-light)]/80 px-4 py-2 text-sm font-semibold text-[var(--text)] shadow-soft pointer-events-auto">
             {t.outOfUploads} — {t.outOfUploadsMessage}
           </div>
@@ -258,7 +265,14 @@ export default function DashboardPage() {
               <p className="text-sm text-[var(--muted)]">
                 {t.uploadSyllabusDesc}
               </p>
-              {!isCreatorOrAdmin && quota && (quota.paid_uploads_purchased ?? 0) - (quota.paid_uploads_used ?? 0) + Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0)) <= 0 ? (
+              {!isCreatorOrAdmin && quota && (() => {
+                const freeAvail = Math.max(0, FREE_UPLOADS - (quota.free_uploads_used ?? 0));
+                const subStatus = quota.subscription_status;
+                const subAvail = (subStatus === "active" || subStatus === "past_due")
+                  ? Math.max(0, (quota.subscription_uploads_quota ?? 50) - (quota.subscription_uploads_used ?? 0))
+                  : 0;
+                return freeAvail <= 0 && subAvail <= 0;
+              })() ? (
                 <>
                   <div className="mt-4 rounded-xl border-2 border-[var(--accent)] bg-[var(--accent-light)]/30 px-4 py-3">
                     <p className="font-semibold text-[var(--text)]">{t.outOfUploads}</p>

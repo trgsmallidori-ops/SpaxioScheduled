@@ -1,13 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
-import { stripe, PAID_UPLOADS_PER_PURCHASE, PRICE_UPLOADS_CENTS } from "@/lib/stripe";
+import { stripe, SUBSCRIPTION_PRICE_ID } from "@/lib/stripe";
 import { apiError, handleUnexpectedError } from "@/lib/api-errors";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-
-const PRODUCT_BY_LOCALE = {
-  en: { name: "10 more uploads", description: "10 additional syllabus uploads for SpaxioScheduled" },
-  fr: { name: "10 téléversements de plus", description: "10 téléversements de syllabus supplémentaires pour SpaxioScheduled" },
-} as const;
 
 const checkoutBodySchema = z.object({ locale: z.enum(["en", "fr"]).optional() });
 
@@ -29,30 +24,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!SUBSCRIPTION_PRICE_ID) {
+      console.error("[stripe/checkout] STRIPE_SUBSCRIPTION_PRICE_ID is missing");
+      return apiError(
+        "Subscription price not configured. Run npm run create-stripe-subscription and add STRIPE_SUBSCRIPTION_PRICE_ID to .env.",
+        503
+      );
+    }
+
     const rawBody = await request.json().catch(() => ({}));
     const parsed = checkoutBodySchema.safeParse(rawBody);
     const locale = parsed.success && parsed.data.locale === "fr" ? "fr" : "en";
-    const product = PRODUCT_BY_LOCALE[locale];
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const session = await stripe.checkout.sessions.create({
-      mode: "payment",
+      mode: "subscription",
       payment_method_types: ["card"],
       locale,
       automatic_tax: { enabled: true },
-      adaptive_pricing: { enabled: true },
       line_items: [
         {
+          price: SUBSCRIPTION_PRICE_ID,
           quantity: 1,
-          price_data: {
-            currency: "cad",
-            unit_amount: PRICE_UPLOADS_CENTS,
-            product_data: {
-              name: product.name,
-              description: product.description,
-              metadata: { uploads: String(PAID_UPLOADS_PER_PURCHASE) },
-            },
-          },
         },
       ],
       success_url: `${appUrl}/dashboard?success=1`,

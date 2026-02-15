@@ -12,7 +12,7 @@ export const HOMEPAGE_FAQS = [
   {
     question: "Is SpaxioScheduled free?",
     answer:
-      "Yes. You get 2 free syllabus uploads when you sign up. After that, you can purchase additional uploads for $5 per 7 uploads. There are no subscriptions—you only pay for what you need.",
+      "Yes. You get 2 free syllabus uploads when you sign up. After that, you can subscribe for $20 per year to get 50 uploads per year. The subscription renews annually and you can cancel anytime.",
   },
   {
     question: "Can I export to Google Calendar or Apple Calendar?",

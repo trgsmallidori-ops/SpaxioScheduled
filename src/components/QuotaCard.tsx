@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
 import type { UserQuota } from "@/types/database";
-import { FREE_UPLOADS } from "@/lib/stripe";
+import { FREE_UPLOADS, SUBSCRIPTION_UPLOADS_PER_YEAR } from "@/lib/stripe";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 export function QuotaCard({
   quota,
@@ -19,10 +21,19 @@ export function QuotaCard({
   const { t, locale } = useLocale();
   const [checkoutError, setCheckoutError] = useState("");
   const freeUsed = quota?.free_uploads_used ?? 0;
-  const paidAvailable = (quota?.paid_uploads_purchased ?? 0) - (quota?.paid_uploads_used ?? 0);
-  const totalLeft = Math.max(0, FREE_UPLOADS - freeUsed) + paidAvailable;
+  const subStatus = quota?.subscription_status;
+  const subQuota = quota?.subscription_uploads_quota ?? SUBSCRIPTION_UPLOADS_PER_YEAR;
+  const subUsed = quota?.subscription_uploads_used ?? 0;
+  const subscriptionAvailable =
+    subStatus === "active" || subStatus === "past_due"
+      ? Math.max(0, subQuota - subUsed)
+      : 0;
+  const freeAvailable = Math.max(0, FREE_UPLOADS - freeUsed);
+  const totalLeft = freeAvailable + subscriptionAvailable;
+  const isSubscribed = subStatus === "active" || subStatus === "past_due";
+  const subscriptionEnd = quota?.subscription_current_period_end ?? null;
 
-  async function handleBuy() {
+  async function handleSubscribe() {
     setCheckoutError("");
     const res = await fetch("/api/stripe/checkout", {
       method: "POST",
@@ -51,7 +62,7 @@ export function QuotaCard({
     return (
       <button
         type="button"
-        onClick={handleBuy}
+        onClick={handleSubscribe}
         className="rounded-xl border border-[var(--accent)]/50 bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--accent)] hover:bg-[var(--accent-light)]"
       >
         {t.testCheckout}
@@ -66,24 +77,42 @@ export function QuotaCard({
           <p className="text-base font-bold text-[var(--text)]">
             {t.uploadsLeft}: <span className="text-[var(--accent)]">{totalLeft}</span>
             {freeUsed < FREE_UPLOADS && (
-              <span className="ml-2 text-[var(--muted)]">({t.free}: {FREE_UPLOADS - freeUsed})</span>
+              <span className="ml-2 text-[var(--muted)]">
+                ({t.free}: {FREE_UPLOADS - freeUsed})
+              </span>
+            )}
+            {isSubscribed && (
+              <span className="ml-2 text-[var(--muted)]">
+                ({t.subscription}: {subscriptionAvailable})
+              </span>
             )}
           </p>
-          <p className="mt-1 text-sm text-[var(--muted)]">
-            {t.freeUploads} · {t.thenPay}
-          </p>
+          {isSubscribed && subscriptionEnd ? (
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              {t.activeUntil}{" "}
+              {format(new Date(subscriptionEnd), "MMM d, yyyy", {
+                locale: locale === "fr" ? fr : undefined,
+              })}
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              {t.freeUploads} · {t.thenSubscribe}
+            </p>
+          )}
         </div>
-        <button
-          type="button"
-          onClick={handleBuy}
-          className={`rounded-xl px-6 py-3 text-base font-bold transition ${
-            totalLeft <= 0
-              ? "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]"
-              : "border border-[var(--accent)]/50 bg-[var(--surface)] text-[var(--accent)] hover:bg-[var(--accent-light)]"
-          }`}
-        >
-          {t.buyUploads}
-        </button>
+        {!isSubscribed && (
+          <button
+            type="button"
+            onClick={handleSubscribe}
+            className={`rounded-xl px-6 py-3 text-base font-bold transition ${
+              totalLeft <= 0
+                ? "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]"
+                : "border border-[var(--accent)]/50 bg-[var(--surface)] text-[var(--accent)] hover:bg-[var(--accent-light)]"
+            }`}
+          >
+            {t.subscribeForYear}
+          </button>
+        )}
       </div>
       {checkoutError && (
         <p className="mt-3 text-sm font-semibold text-red-600">{checkoutError}</p>

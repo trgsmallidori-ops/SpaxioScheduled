@@ -2,11 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import {
-  FREE_UPLOADS,
-  PAID_UPLOADS_PER_PURCHASE,
-  stripe,
-} from "@/lib/stripe";
+import { FREE_UPLOADS, stripe } from "@/lib/stripe";
 import { isCreatorOrAdmin } from "@/lib/auth";
 import { DEFAULT_COURSE_COLOR } from "@/lib/courseColors";
 import type { ParsedSyllabus } from "@/types/database";
@@ -150,14 +146,17 @@ async function handleParseSyllabus(request: NextRequest) {
     .single();
 
   const freeUsed = quota?.free_uploads_used ?? 0;
-  const paidPurchased = quota?.paid_uploads_purchased ?? 0;
-  const paidUsed = quota?.paid_uploads_used ?? 0;
-  const paidAvailable = paidPurchased - paidUsed;
+  const subStatus = (quota as { subscription_status?: string } | null)?.subscription_status;
+  const subQuota = (quota as { subscription_uploads_quota?: number } | null)?.subscription_uploads_quota ?? 0;
+  const subUsed = (quota as { subscription_uploads_used?: number } | null)?.subscription_uploads_used ?? 0;
+  const subscriptionAvailable =
+    (subStatus === "active" || subStatus === "past_due") ? Math.max(0, subQuota - subUsed) : 0;
+  const freeAvailable = Math.max(0, FREE_UPLOADS - freeUsed);
   const freeAccess = isCreatorOrAdmin(user.id);
 
   // Server-side quota check — never skip. Blocks direct API calls or URL bypass.
   if (!freeAccess) {
-    if (freeUsed >= FREE_UPLOADS && paidAvailable <= 0) {
+    if (freeAvailable <= 0 && subscriptionAvailable <= 0) {
       return NextResponse.json(
         { error: "No uploads left", code: "QUOTA_EXCEEDED" },
         { status: 403 }
@@ -327,14 +326,17 @@ ${text.slice(0, 12000)}`,
   if (!freeAccess) {
     const { data: quotaRecheck } = await admin
       .from("user_quota")
-      .select("free_uploads_used, paid_uploads_purchased, paid_uploads_used")
+      .select("free_uploads_used, subscription_status, subscription_uploads_quota, subscription_uploads_used")
       .eq("user_id", user.id)
       .single();
     const fr = (quotaRecheck?.free_uploads_used ?? 0) as number;
-    const pp = (quotaRecheck?.paid_uploads_purchased ?? 0) as number;
-    const pu = (quotaRecheck?.paid_uploads_used ?? 0) as number;
-    const paidAvail = pp - pu;
-    if (fr >= FREE_UPLOADS && paidAvail <= 0) {
+    const qr = quotaRecheck as { subscription_status?: string; subscription_uploads_quota?: number; subscription_uploads_used?: number } | null;
+    const subStatusR = qr?.subscription_status;
+    const subQuotaR = qr?.subscription_uploads_quota ?? 0;
+    const subUsedR = qr?.subscription_uploads_used ?? 0;
+    const subAvail = (subStatusR === "active" || subStatusR === "past_due") ? Math.max(0, subQuotaR - subUsedR) : 0;
+    const freeAvail = Math.max(0, FREE_UPLOADS - fr);
+    if (freeAvail <= 0 && subAvail <= 0) {
       return NextResponse.json(
         { error: "No uploads left", code: "QUOTA_EXCEEDED" },
         { status: 403 }
@@ -466,7 +468,7 @@ ${text.slice(0, 12000)}`,
       await admin
         .from("user_quota")
         .update({
-          paid_uploads_used: paidUsed + 1,
+          subscription_uploads_used: subUsed + 1,
           updated_at: new Date().toISOString(),
         })
         .eq("user_id", user.id);

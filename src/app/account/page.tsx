@@ -165,7 +165,7 @@ export default function AccountPage() {
         </div>
       </section>
 
-      <section className="mt-8 rounded-2xl border border-red-100 bg-red-50 p-6">
+      <section className="mt-8 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-6">
         <h2 className="text-lg font-bold text-[var(--text)]">{t.deleteAccount}</h2>
         <p className="mt-2 text-sm text-[var(--muted)]">
           Permanently delete your account and all data.
@@ -174,7 +174,7 @@ export default function AccountPage() {
           type="button"
           onClick={() => setShowDeleteAccountConfirm(true)}
           disabled={deleting}
-          className="mt-4 rounded-xl bg-red-600 px-6 py-3 text-base font-bold text-white hover:bg-red-700 disabled:opacity-50"
+          className="mt-4 rounded-xl bg-[var(--danger)] px-6 py-3 text-base font-bold text-white hover:bg-[var(--danger-hover)] disabled:opacity-50"
         >
           {t.deleteAccount}
         </button>
