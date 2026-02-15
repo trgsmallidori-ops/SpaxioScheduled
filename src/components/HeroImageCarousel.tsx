@@ -104,6 +104,9 @@ export function HeroImageCarousel({ fullScreen = false }: HeroImageCarouselProps
               fill
               className="object-cover"
               sizes={fullScreen ? "100vw" : "(max-width: 768px) 100vw, 28rem"}
+              priority={fullScreen && i === 0}
+              fetchPriority={fullScreen && i === 0 ? "high" : "auto"}
+              loading={fullScreen && i === 0 ? "eager" : "lazy"}
               onError={() => handleError(i)}
             />
           )}

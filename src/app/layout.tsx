@@ -1,12 +1,14 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ConsentProvider } from "@/contexts/ConsentContext";
 import { ConsentModal } from "@/components/ConsentModal";
-import { ChatBot } from "@/components/ChatBot";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { Header } from "@/components/Header";
+
+import { ChatBot } from "@/components/ChatBot";
 import { Footer } from "@/components/Footer";
 import { defaultMeta, SITE_URL, ogImageUrl, buildJsonLd } from "@/lib/seo";
 
@@ -30,6 +32,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
+    alternateLocale: ["fr_CA"],
     url: SITE_URL,
     siteName: "SpaxioScheduled",
     title: defaultMeta.title,
@@ -41,6 +44,8 @@ export const metadata: Metadata = {
     title: defaultMeta.title,
     description: defaultMeta.description,
     images: [ogImageUrl],
+    site: "@SpaxioScheduled",
+    creator: "@SpaxioScheduled",
   },
   referrer: "origin-when-cross-origin",
   robots: {
@@ -57,6 +62,16 @@ export const metadata: Metadata = {
     apple: "/logo.png",
   },
   category: "education",
+  verification: process.env.NEXT_PUBLIC_GSC_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GSC_VERIFICATION }
+    : undefined,
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f7fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+  ],
 };
 
 export default function RootLayout({
@@ -69,6 +84,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={nunito.variable} suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="icon" href={`${SITE_URL}/logo.png`} type="image/png" sizes="48x48" />
         <link rel="apple-touch-icon" href={`${SITE_URL}/logo.png`} />
         <script
@@ -78,6 +95,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`min-h-screen w-full overflow-x-hidden flex flex-col ${nunito.className} antialiased text-[var(--text)] bg-[var(--bg)]`}>
+        <GoogleAnalytics />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -116,6 +116,7 @@ export function Header() {
       {includeLanguage && langButtons(mobile)}
       {user ? (
         <>
+          {navLink("/blog", "Blog", pathname === "/blog", false, mobile)}
           {!isCreator && !isAdmin && quota && (quota.totalLeft <= 0 || !quota.hasUpgraded) && (
             <div className="flex flex-col items-center">
               <Link
@@ -144,6 +145,7 @@ export function Header() {
         </>
       ) : (
         <>
+          {navLink("/blog", "Blog", pathname === "/blog", false, mobile)}
           <Link
             href="/login"
             onClick={mobile ? closeMenu : undefined}
@@ -269,6 +271,7 @@ export function Header() {
               </>
             ) : (
               <>
+                {navLink("/blog", "Blog", pathname === "/blog", false, true)}
                 {navLink("/login", t.login, false, false, true)}
                 {navLink("/signup", t.signUp, false, false, true)}
               </>

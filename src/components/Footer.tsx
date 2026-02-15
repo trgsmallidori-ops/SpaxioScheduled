@@ -11,6 +11,21 @@ export function Footer() {
         <div className="flex-1 min-w-0" />
         <span className="shrink-0">© {new Date().getFullYear()} {t.siteName}</span>
         <div className="flex flex-1 flex-wrap items-center justify-end gap-6 min-w-0">
+          <Link href="/blog" className="font-semibold text-[var(--text)] hover:text-[var(--accent)]">
+            Blog
+          </Link>
+          <Link href="/about" className="font-semibold text-[var(--text)] hover:text-[var(--accent)]">
+            About
+          </Link>
+          <Link href="/features" className="font-semibold text-[var(--text)] hover:text-[var(--accent)]">
+            Features
+          </Link>
+          <Link href="/pricing" className="font-semibold text-[var(--text)] hover:text-[var(--accent)]">
+            Pricing
+          </Link>
+          <Link href="/faq" className="font-semibold text-[var(--text)] hover:text-[var(--accent)]">
+            FAQ
+          </Link>
           <Link href="/privacy" className="font-semibold text-[var(--text)] hover:text-[var(--accent)]">
             {t.privacy}
           </Link>
