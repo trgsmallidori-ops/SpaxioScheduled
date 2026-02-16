@@ -33,7 +33,21 @@ STRIPE_SUBSCRIPTION_PRICE_ID=price_xxxxxxxxxxxxx
 
 This was set when you ran `npm run create-stripe-subscription`. If you need to create a new price, run that script again.
 
-## 4. Test the Flow
+## 4. Add Multi-Currency Support (Optional)
+
+To show prices in the customer's local currency (USD, EUR, GBP, etc.) based on their location:
+
+```bash
+npm run add-currency-options
+```
+
+This adds `currency_options` to your existing Stripe price. Stripe will present the price in the customer's local currency when they visit Checkout. Edit `scripts/add-currency-options.ts` to adjust amounts or add more currencies.
+
+**Note:** Stripe's Adaptive Pricing (automatic conversion) does not support subscription mode. This uses manual currency prices—you set fixed amounts per currency. Update amounts periodically for exchange rate changes.
+
+To test a specific currency, use an email with `+location_XX` (e.g. `test+location_FR@example.com`) when creating a checkout—Stripe will present prices as if the customer is in that country.
+
+## 5. Test the Flow
 
 1. Start the app: `npm run dev`
 2. Sign up or log in
@@ -42,7 +56,7 @@ This was set when you ran `npm run create-stripe-subscription`. If you need to c
 5. Verify you see "Subscription activated! You have 50 uploads this year."
 6. Upload a syllabus and confirm it uses subscription quota
 
-## 5. Test Webhooks Locally (Optional)
+## 6. Test Webhooks Locally (Optional)
 
 Use Stripe CLI to forward webhooks to localhost:
 

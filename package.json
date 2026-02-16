@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "create-stripe-subscription": "npx tsx scripts/create-stripe-subscription.ts"
+    "create-stripe-subscription": "npx tsx scripts/create-stripe-subscription.ts",
+    "add-currency-options": "npx tsx scripts/add-currency-options.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

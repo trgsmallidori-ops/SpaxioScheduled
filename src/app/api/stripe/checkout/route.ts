@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       mode: "subscription",
       payment_method_types: ["card"],
       locale,
+      customer_email: user.email,
       automatic_tax: { enabled: true },
       line_items: [
         {
