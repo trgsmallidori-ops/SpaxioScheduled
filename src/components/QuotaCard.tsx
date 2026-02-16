@@ -6,6 +6,7 @@ import type { UserQuota } from "@/types/database";
 import { FREE_UPLOADS, SUBSCRIPTION_UPLOADS_PER_YEAR } from "@/lib/stripe";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { PurchaseButton } from "@/components/PurchaseButton";
 
 export function QuotaCard({
   quota,
@@ -101,17 +102,14 @@ export function QuotaCard({
           )}
         </div>
         {!isSubscribed && (
-          <button
-            type="button"
+          <PurchaseButton
+            as="button"
             onClick={handleSubscribe}
-            className={`rounded-xl px-6 py-3 text-base font-bold transition ${
-              totalLeft <= 0
-                ? "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]"
-                : "border border-[var(--accent)]/50 bg-[var(--surface)] text-[var(--accent)] hover:bg-[var(--accent-light)]"
-            }`}
-          >
-            {t.subscribeForYear}
-          </button>
+            label={t.subscribeForYear}
+            secureNote={t.upgradeSecureNote}
+            size="md"
+            variant={totalLeft <= 0 ? "accent" : "outline"}
+          />
         )}
       </div>
       {checkoutError && (

@@ -6,6 +6,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { createClient } from "@/lib/supabase/client";
 import { HeroImageCarousel } from "@/components/HeroImageCarousel";
 import { FAQSection } from "@/components/FAQSection";
+import { PurchaseButton } from "@/components/PurchaseButton";
 
 export function HomePageContent() {
   const { t } = useLocale();
@@ -67,14 +68,15 @@ export function HomePageContent() {
               <span className="text-base font-bold text-[var(--accent)] sm:text-lg">{t.thenPay}</span>
               <p className="w-full text-sm text-white/80 sm:w-auto sm:text-base">{t.pricingSubline}</p>
             </div>
-            <div className="mt-6 flex flex-col items-start gap-1">
-              <Link
+            <div className="mt-6">
+              <PurchaseButton
+                as="link"
                 href={user ? "/dashboard" : "/signup"}
-                className="inline-block rounded-xl bg-[var(--accent)] px-8 py-4 text-base font-bold text-white no-underline shadow-soft transition hover:bg-[var(--accent-hover)] sm:text-lg"
-              >
-                {t.upgrade}
-              </Link>
-              <span className="text-sm text-white/70">{t.upgradeSecureNote}</span>
+                label={t.upgrade}
+                secureNote={t.upgradeSecureNote}
+                size="lg"
+                variant="accent"
+              />
             </div>
           </div>
         </div>
